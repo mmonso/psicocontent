@@ -79,16 +79,30 @@ export const CreatePostTab: React.FC<CreatePostTabProps> = ({
       
       {/* ACTIVE MANIFESTO CARD */}
       <div className="bg-gradient-to-r from-teal-900 via-stone-900 to-teal-950 text-white rounded-3xl p-6 border border-teal-800/40 shadow-md flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-        <div className="space-y-1">
+        <div className="min-w-0 space-y-2">
           <div className="flex items-center space-x-2 text-teal-300 text-xs font-bold uppercase tracking-wider">
-            <Heart className="w-4 h-4 text-rose-400" />
+            <Heart className="w-4 h-4 text-rose-400 shrink-0" />
             <span>Sua Visão de Mundo Ativa</span>
           </div>
-          <h2 className="text-lg font-bold text-white font-serif">
-            {manifesto.authorName || 'Sua Assinatura'} • {manifesto.toneOfVoice}
-          </h2>
-          <p className="text-xs text-stone-300 line-clamp-2 max-w-2xl font-sans leading-relaxed">
-            "{manifesto.worldviewDescription}"
+
+          <div className="space-y-0.5">
+            <h2 className="text-xl font-bold text-white font-serif leading-snug">
+              {manifesto.authorName || 'Sua Assinatura'}
+            </h2>
+            {manifesto.professionalTitle && (
+              <p className="text-sm text-teal-200/80 font-sans">
+                {manifesto.professionalTitle}
+              </p>
+            )}
+          </div>
+
+          <p className="text-sm text-stone-300 line-clamp-2 max-w-2xl font-sans leading-relaxed">
+            {manifesto.worldviewDescription}
+          </p>
+
+          <p className="text-xs text-stone-400 line-clamp-2 max-w-2xl font-sans leading-relaxed">
+            <span className="font-semibold text-stone-300">Tom de voz: </span>
+            {manifesto.toneOfVoice}
           </p>
         </div>
 
