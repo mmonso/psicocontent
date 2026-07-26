@@ -1,0 +1,6 @@
+{
+  "name": "PsicoContent Studio",
+  "description": "Gerador de artigos e postagens para blog de psicologia acionado por uma equipe virtual (Redator, Revisor Clínico, Designer de Imagem) pautada na visão de mundo e tom de voz personalizados do autor.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
