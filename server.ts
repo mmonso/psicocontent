@@ -554,7 +554,7 @@ ${text}`;
 
 // Vite middleware logic for dev vs prod
 async function startServer() {
-  const PORT = 3000;
+  const PORT = Number(process.env.PORT) || 3000;
 
   if (process.env.NODE_ENV !== 'production') {
     const { createServer: createViteServer } = await import('vite');
@@ -571,8 +571,19 @@ async function startServer() {
     });
   }
 
-  app.listen(PORT, '0.0.0.0', () => {
-    console.log(`PsicoContent Studio server running on http://0.0.0.0:${PORT}`);
+  const server = app.listen(PORT, '0.0.0.0', () => {
+    // Endereço navegável, não o de bind: http://0.0.0.0 não resolve no navegador.
+    console.log(`PsicoContent Studio: http://localhost:${PORT}`);
+  });
+
+  server.on('error', (err: NodeJS.ErrnoException) => {
+    if (err.code === 'EADDRINUSE') {
+      console.error(
+        `A porta ${PORT} já está em uso. Rode com outra porta: PORT=3100 npm run dev`
+      );
+      process.exit(1);
+    }
+    throw err;
   });
 }
 
