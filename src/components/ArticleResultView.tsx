@@ -39,6 +39,8 @@ import { VISUAL_STYLES } from '../data/presetApproaches';
 interface ArticleResultViewProps {
   post: ArticlePost;
   onPostUpdated: (updatedPost: ArticlePost) => void;
+  /* Grava sem confirmação visual, para o salvamento automático das edições. */
+  onAutoSave?: (updatedPost: ArticlePost) => void;
   onRegenerateImage: (styleId: string) => void;
   onClonePost?: (post: ArticlePost) => void;
   addToast?: (type: 'success' | 'error' | 'info', title: string, description?: string) => void;
@@ -48,6 +50,7 @@ interface ArticleResultViewProps {
 export const ArticleResultView: React.FC<ArticleResultViewProps> = ({
   post,
   onPostUpdated,
+  onAutoSave,
   onRegenerateImage,
   onClonePost,
   addToast,
@@ -71,6 +74,48 @@ export const ArticleResultView: React.FC<ArticleResultViewProps> = ({
 
   // Version Toggle: 'revised' vs 'draft'
   const [viewingVersion, setViewingVersion] = useState<'revised' | 'draft'>('revised');
+
+  /* Salvamento automático das edições de texto.
+     O app anuncia "salvamento automático", mas até aqui só o clique explícito
+     em "Salvar" gravava — editar e atualizar a página perdia tudo. */
+  const savedTitle = post.review?.revisedTitle || post.draft?.title || '';
+  const savedSubtitle = post.review?.revisedSubtitle || post.draft?.subtitle || '';
+  const savedText = post.review?.revisedText || post.draft?.rawText || '';
+
+  const hasUnsavedEdits =
+    editedTitle !== savedTitle ||
+    editedSubtitle !== savedSubtitle ||
+    editedText !== savedText;
+
+  useEffect(() => {
+    if (!hasUnsavedEdits || !post.review || !onAutoSave) return;
+
+    const timer = setTimeout(() => {
+      onAutoSave({
+        ...post,
+        review: {
+          ...post.review!,
+          revisedTitle: editedTitle,
+          revisedSubtitle: editedSubtitle,
+          revisedText: editedText,
+        },
+        updatedAt: new Date().toISOString(),
+      });
+    }, 1200);
+
+    return () => clearTimeout(timer);
+  }, [editedTitle, editedSubtitle, editedText, hasUnsavedEdits, post, onAutoSave]);
+
+  /* Rede de segurança para o intervalo entre a última tecla e a gravação. */
+  useEffect(() => {
+    if (!hasUnsavedEdits) return;
+    const warn = (e: BeforeUnloadEvent) => {
+      e.preventDefault();
+      e.returnValue = '';
+    };
+    window.addEventListener('beforeunload', warn);
+    return () => window.removeEventListener('beforeunload', warn);
+  }, [hasUnsavedEdits]);
 
   // Article Tags Management
   const [articleTags, setArticleTags] = useState<string[]>(
@@ -522,15 +567,15 @@ export const ArticleResultView: React.FC<ArticleResultViewProps> = ({
     <div className="max-w-5xl mx-auto space-y-6 py-4 animate-fade-in">
       
       {/* Top Banner Action Bar */}
-      <div className="bg-white rounded-2xl p-4 sm:p-6 border border-stone-200 shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+      <div className="bg-surface rounded-panel p-4 sm:p-6 border border-line shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
         <div>
-          <div className="flex items-center space-x-2 text-xs font-semibold text-teal-700 uppercase tracking-wider">
-            <Sparkles className="w-4 h-4 text-amber-500 shrink-0" />
+          <div className="flex items-center space-x-2 text-xs font-semibold text-accent-ink uppercase tracking-wider">
+            <Sparkles className="w-4 h-4 text-accent-ink shrink-0" />
             <span>Artigo Concluído</span>
-            <span className="text-stone-300">•</span>
-            <span className="text-stone-500 truncate max-w-[150px] sm:max-w-none">{post.approachName || post.tone || 'Visão do Autor'}</span>
+            <span className="text-ink-muted">•</span>
+            <span className="text-ink-faint truncate max-w-[150px] sm:max-w-none">{post.approachName || post.tone || 'Visão do Autor'}</span>
           </div>
-          <h2 className="font-serif font-bold text-lg sm:text-2xl text-stone-900 mt-1 leading-tight">
+          <h2 className="font-serif font-bold text-lg sm:text-2xl text-ink mt-1 leading-tight">
             {displayedTitle}
           </h2>
         </div>
@@ -539,43 +584,43 @@ export const ArticleResultView: React.FC<ArticleResultViewProps> = ({
         <div className="flex flex-wrap items-center gap-2 w-full md:w-auto">
           <button
             onClick={handleDownloadPDF}
-            className="flex-1 md:flex-none px-3.5 py-2 bg-amber-600 hover:bg-amber-700 text-white text-xs font-semibold rounded-xl flex items-center justify-center space-x-1.5 shadow-xs transition-all cursor-pointer min-h-[40px]"
+            className="flex-1 md:flex-none px-3.5 py-2 bg-accent hover:bg-accent text-ink text-xs font-semibold rounded-control flex items-center justify-center space-x-1.5 shadow-xs transition-all cursor-pointer min-h-[40px]"
             title="Exportar documento PDF pronto para impressão ou envio a pacientes"
           >
-            <Printer className="w-4 h-4 text-amber-200" />
+            <Printer className="w-4 h-4 text-accent-ink" />
             <span>Baixar PDF</span>
           </button>
 
           <button
             onClick={() => setActiveTab('multiformat')}
-            className="flex-1 md:flex-none px-3.5 py-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-900 text-xs font-semibold rounded-xl border border-indigo-200 flex items-center justify-center space-x-1.5 transition-all cursor-pointer min-h-[40px]"
+            className="flex-1 md:flex-none px-3.5 py-2 bg-accent-soft hover:bg-accent-soft text-accent-ink text-xs font-semibold rounded-control border border-accent/40 flex items-center justify-center space-x-1.5 transition-all cursor-pointer min-h-[40px]"
           >
-            <Layers className="w-4 h-4 text-indigo-600" />
+            <Layers className="w-4 h-4 text-accent-ink" />
             <span>Carrossel & Reels</span>
           </button>
 
           {onClonePost && (
             <button
               onClick={() => onClonePost(post)}
-              className="flex-1 md:flex-none px-3 py-2 bg-stone-100 hover:bg-stone-200 text-stone-800 text-xs font-semibold rounded-xl flex items-center justify-center space-x-1.5 transition-all cursor-pointer min-h-[40px]"
+              className="flex-1 md:flex-none px-3 py-2 bg-surface-raised hover:bg-surface-raised text-ink text-xs font-semibold rounded-control flex items-center justify-center space-x-1.5 transition-all cursor-pointer min-h-[40px]"
               title="Criar uma cópia para modificações"
             >
-              <Copy className="w-4 h-4 text-stone-600" />
+              <Copy className="w-4 h-4 text-ink-muted" />
               <span>Clonar Artigo</span>
             </button>
           )}
 
           <button
             onClick={() => setIsEditingText(!isEditingText)}
-            className="flex-1 md:flex-none px-3.5 py-2 bg-stone-100 hover:bg-stone-200 text-stone-800 text-xs font-semibold rounded-xl flex items-center justify-center space-x-1.5 transition-all cursor-pointer min-h-[40px]"
+            className="flex-1 md:flex-none px-3.5 py-2 bg-surface-raised hover:bg-surface-raised text-ink text-xs font-semibold rounded-control flex items-center justify-center space-x-1.5 transition-all cursor-pointer min-h-[40px]"
           >
-            <Edit3 className="w-4 h-4 text-stone-600" />
+            <Edit3 className="w-4 h-4 text-ink-muted" />
             <span>{isEditingText ? 'Ocultar Editor' : 'Editar no Teclado'}</span>
           </button>
 
           <button
             onClick={downloadArticle}
-            className="w-full sm:w-auto px-3.5 py-2 bg-teal-700 hover:bg-teal-800 text-white text-xs font-semibold rounded-xl flex items-center justify-center space-x-1.5 shadow-sm transition-all cursor-pointer min-h-[40px]"
+            className="w-full sm:w-auto px-3.5 py-2 bg-accent hover:bg-accent text-ink text-xs font-semibold rounded-control flex items-center justify-center space-x-1.5 shadow-sm transition-all cursor-pointer min-h-[40px]"
           >
             <Download className="w-4 h-4" />
             <span>Baixar .MD</span>
@@ -584,13 +629,13 @@ export const ArticleResultView: React.FC<ArticleResultViewProps> = ({
       </div>
 
       {/* Main View Tabs */}
-      <div className="flex border-b border-stone-200 space-x-2 sm:space-x-6 overflow-x-auto pb-1">
+      <div className="flex border-b border-line space-x-2 sm:space-x-6 overflow-x-auto pb-1">
         <button
           onClick={() => setActiveTab('preview')}
           className={`pb-3 text-xs sm:text-sm font-semibold flex items-center space-x-2 border-b-2 transition-all whitespace-nowrap ${
             activeTab === 'preview'
-              ? 'border-teal-600 text-teal-800'
-              : 'border-transparent text-stone-500 hover:text-stone-800'
+              ? 'border-accent/40 text-accent-ink'
+              : 'border-transparent text-ink-faint hover:text-ink'
           }`}
         >
           <BookOpen className="w-4 h-4" />
@@ -601,11 +646,11 @@ export const ArticleResultView: React.FC<ArticleResultViewProps> = ({
           onClick={() => setActiveTab('multiformat')}
           className={`pb-3 text-xs sm:text-sm font-semibold flex items-center space-x-2 border-b-2 transition-all whitespace-nowrap ${
             activeTab === 'multiformat'
-              ? 'border-indigo-600 text-indigo-800'
-              : 'border-transparent text-stone-500 hover:text-stone-800'
+              ? 'border-accent/40 text-accent-ink'
+              : 'border-transparent text-ink-faint hover:text-ink'
           }`}
         >
-          <Layers className="w-4 h-4 text-indigo-600" />
+          <Layers className="w-4 h-4 text-accent-ink" />
           <span>Carrossel & Reels</span>
         </button>
 
@@ -613,8 +658,8 @@ export const ArticleResultView: React.FC<ArticleResultViewProps> = ({
           onClick={() => setActiveTab('social')}
           className={`pb-3 text-xs sm:text-sm font-semibold flex items-center space-x-2 border-b-2 transition-all whitespace-nowrap ${
             activeTab === 'social'
-              ? 'border-indigo-600 text-indigo-800'
-              : 'border-transparent text-stone-500 hover:text-stone-800'
+              ? 'border-accent/40 text-accent-ink'
+              : 'border-transparent text-ink-faint hover:text-ink'
           }`}
         >
           <Share2 className="w-4 h-4" />
@@ -625,8 +670,8 @@ export const ArticleResultView: React.FC<ArticleResultViewProps> = ({
           onClick={() => setActiveTab('markdown')}
           className={`pb-3 text-xs sm:text-sm font-semibold flex items-center space-x-2 border-b-2 transition-all whitespace-nowrap ${
             activeTab === 'markdown'
-              ? 'border-amber-600 text-amber-800'
-              : 'border-transparent text-stone-500 hover:text-stone-800'
+              ? 'border-accent/40 text-accent-ink'
+              : 'border-transparent text-ink-faint hover:text-ink'
           }`}
         >
           <FileText className="w-4 h-4" />
@@ -637,8 +682,8 @@ export const ArticleResultView: React.FC<ArticleResultViewProps> = ({
           onClick={() => setActiveTab('review')}
           className={`pb-3 text-xs sm:text-sm font-semibold flex items-center space-x-2 border-b-2 transition-all whitespace-nowrap ${
             activeTab === 'review'
-              ? 'border-emerald-600 text-emerald-800'
-              : 'border-transparent text-stone-500 hover:text-stone-800'
+              ? 'border-accent/40 text-accent-ink'
+              : 'border-transparent text-ink-faint hover:text-ink'
           }`}
         >
           <ShieldCheck className="w-4 h-4" />
@@ -650,7 +695,7 @@ export const ArticleResultView: React.FC<ArticleResultViewProps> = ({
           className={`pb-3 text-xs sm:text-sm font-semibold flex items-center space-x-2 border-b-2 transition-all whitespace-nowrap ${
             activeTab === 'reactexport'
               ? 'border-cyan-600 text-cyan-900 font-bold'
-              : 'border-transparent text-stone-500 hover:text-stone-800'
+              : 'border-transparent text-ink-faint hover:text-ink'
           }`}
         >
           <Code className="w-4 h-4 text-cyan-600" />
@@ -661,29 +706,29 @@ export const ArticleResultView: React.FC<ArticleResultViewProps> = ({
 
       {/* TAB 1: BLOG PREVIEW */}
       {activeTab === 'preview' && (
-        <div className="bg-white rounded-3xl p-4 sm:p-10 border border-stone-200 shadow-sm space-y-8">
+        <div className="bg-surface rounded-panel p-4 sm:p-10 border border-line shadow-sm space-y-8">
           
           {/* Version Switcher Bar (Versão Revisada vs Rascunho Original) */}
-          <div className="bg-stone-50 border border-stone-200 p-2 sm:p-3 rounded-2xl flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
+          <div className="bg-surface-sunken border border-line p-2 sm:p-3 rounded-panel flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
             <div className="flex items-center space-x-2">
-              <span className="font-bold text-stone-700 uppercase tracking-wider text-[11px]">Versão em Exibição:</span>
-              <div className="flex bg-white p-1 rounded-xl border border-stone-200 shadow-2xs">
+              <span className="font-bold text-ink-muted uppercase tracking-wider text-[11px]">Versão em Exibição:</span>
+              <div className="flex bg-surface p-1 rounded-control border border-line shadow-2xs">
                 <button
                   onClick={() => setViewingVersion('revised')}
-                  className={`px-3 py-1 rounded-lg font-semibold transition-all cursor-pointer ${
+                  className={`px-3 py-1 rounded-control font-semibold transition-all cursor-pointer ${
                     viewingVersion === 'revised'
-                      ? 'bg-teal-800 text-white shadow-xs'
-                      : 'text-stone-600 hover:text-stone-900'
+                      ? 'bg-accent text-ink shadow-xs'
+                      : 'text-ink-muted hover:text-ink'
                   }`}
                 >
                   ✨ Versão Revisada (Final)
                 </button>
                 <button
                   onClick={() => setViewingVersion('draft')}
-                  className={`px-3 py-1 rounded-lg font-semibold transition-all cursor-pointer ${
+                  className={`px-3 py-1 rounded-control font-semibold transition-all cursor-pointer ${
                     viewingVersion === 'draft'
-                      ? 'bg-amber-600 text-white shadow-xs'
-                      : 'text-stone-600 hover:text-stone-900'
+                      ? 'bg-accent text-ink shadow-xs'
+                      : 'text-ink-muted hover:text-ink'
                   }`}
                 >
                   📝 Rascunho Original (Redator)
@@ -694,9 +739,9 @@ export const ArticleResultView: React.FC<ArticleResultViewProps> = ({
             <div className="flex items-center space-x-2 w-full sm:w-auto justify-end">
               <button
                 onClick={() => setIsEditingText(!isEditingText)}
-                className="px-3 py-1.5 bg-white border border-stone-300 hover:bg-stone-100 font-semibold text-stone-800 rounded-xl flex items-center space-x-1 transition-all cursor-pointer"
+                className="px-3 py-1.5 bg-surface border border-line hover:bg-surface-raised font-semibold text-ink rounded-control flex items-center space-x-1 transition-all cursor-pointer"
               >
-                <Edit3 className="w-3.5 h-3.5 text-amber-600" />
+                <Edit3 className="w-3.5 h-3.5 text-accent-ink" />
                 <span>{isEditingText ? 'Concluir Edição' : 'Editar Texto no Teclado'}</span>
               </button>
             </div>
@@ -704,14 +749,14 @@ export const ArticleResultView: React.FC<ArticleResultViewProps> = ({
 
           {/* Draft Notice Banner if viewing original draft */}
           {viewingVersion === 'draft' && (
-            <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs text-amber-950">
+            <div className="bg-accent-soft border border-accent/40 rounded-panel p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs text-accent-ink">
               <div className="flex items-center space-x-2">
-                <AlertCircle className="w-5 h-5 text-amber-600 shrink-0" />
+                <AlertCircle className="w-5 h-5 text-accent-ink shrink-0" />
                 <span>Você está visualizando o rascunho original produzido pelo Redator Virtual antes da revisão clínica.</span>
               </div>
               <button
                 onClick={handleRestoreDraftAsRevised}
-                className="px-3.5 py-1.5 bg-amber-600 hover:bg-amber-700 text-white font-bold rounded-xl flex items-center space-x-1 transition-all shadow-xs shrink-0 cursor-pointer"
+                className="px-3.5 py-1.5 bg-accent hover:bg-accent text-ink font-bold rounded-control flex items-center space-x-1 transition-all shadow-xs shrink-0 cursor-pointer"
               >
                 <RotateCcw className="w-3.5 h-3.5" />
                 <span>Restaurar Rascunho como Texto Ativo</span>
@@ -721,23 +766,23 @@ export const ArticleResultView: React.FC<ArticleResultViewProps> = ({
 
           {/* Direct Keyboard Editor Panel (WYSIWYG / Textarea) */}
           {isEditingText && (
-            <div className="bg-amber-50/60 border border-amber-300 rounded-2xl p-4 sm:p-6 space-y-4 animate-fade-in">
-              <div className="flex items-center justify-between border-b border-amber-200 pb-3">
-                <div className="flex items-center space-x-2 font-bold text-amber-950 text-sm">
-                  <Edit3 className="w-4 h-4 text-amber-700" />
+            <div className="bg-accent-soft/60 border border-accent/40 rounded-panel p-4 sm:p-6 space-y-4 animate-fade-in">
+              <div className="flex items-center justify-between border-b border-accent/40 pb-3">
+                <div className="flex items-center space-x-2 font-bold text-accent-ink text-sm">
+                  <Edit3 className="w-4 h-4 text-accent-ink" />
                   <span>Modo de Edição Direta no Teclado</span>
                 </div>
                 <div className="flex items-center space-x-2">
                   <button
                     onClick={handleSaveEdits}
-                    className="px-4 py-1.5 bg-teal-800 hover:bg-teal-900 text-white font-bold text-xs rounded-xl flex items-center space-x-1 transition-all cursor-pointer shadow-xs"
+                    className="px-4 py-1.5 bg-accent hover:bg-accent text-ink font-bold text-xs rounded-control flex items-center space-x-1 transition-all cursor-pointer shadow-xs"
                   >
-                    <Save className="w-3.5 h-3.5 text-amber-300" />
+                    <Save className="w-3.5 h-3.5 text-accent-ink" />
                     <span>Salvar Alterações</span>
                   </button>
                   <button
                     onClick={() => setIsEditingText(false)}
-                    className="px-3 py-1.5 bg-stone-200 hover:bg-stone-300 text-stone-800 font-semibold text-xs rounded-xl cursor-pointer"
+                    className="px-3 py-1.5 bg-surface-raised hover:bg-surface text-ink font-semibold text-xs rounded-control cursor-pointer"
                   >
                     Cancelar
                   </button>
@@ -746,29 +791,29 @@ export const ArticleResultView: React.FC<ArticleResultViewProps> = ({
 
               <div className="space-y-3">
                 <div>
-                  <label className="block text-xs font-bold text-stone-800 mb-1">Título do Artigo</label>
+                  <label className="block text-xs font-bold text-ink mb-1">Título do Artigo</label>
                   <input
                     type="text"
                     value={editedTitle}
                     onChange={(e) => setEditedTitle(e.target.value)}
-                    className="w-full px-3.5 py-2 bg-white border border-stone-300 rounded-xl text-sm font-serif font-bold text-stone-900 focus:ring-2 focus:ring-teal-500"
+                    className="w-full px-3.5 py-2 bg-surface border border-line rounded-control text-sm font-serif font-bold text-ink focus:ring-2 focus:ring-accent"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-stone-800 mb-1">Subtítulo / Linha fina</label>
+                  <label className="block text-xs font-bold text-ink mb-1">Subtítulo / Linha fina</label>
                   <input
                     type="text"
                     value={editedSubtitle}
                     onChange={(e) => setEditedSubtitle(e.target.value)}
-                    className="w-full px-3.5 py-2 bg-white border border-stone-300 rounded-xl text-xs font-serif italic text-stone-800 focus:ring-2 focus:ring-teal-500"
+                    className="w-full px-3.5 py-2 bg-surface border border-line rounded-control text-xs font-serif italic text-ink focus:ring-2 focus:ring-accent"
                   />
                 </div>
 
                 <div>
                   <div className="flex items-center justify-between mb-1">
-                    <label className="block text-xs font-bold text-stone-800">Corpo do Ensaio (Markdown)</label>
-                    <span className="text-[11px] text-stone-500 font-mono">
+                    <label className="block text-xs font-bold text-ink">Corpo do Ensaio (Markdown)</label>
+                    <span className="text-[11px] text-ink-faint font-mono">
                       {editedText.split(/\s+/).filter(Boolean).length} palavras • {editedText.length} caracteres
                     </span>
                   </div>
@@ -776,7 +821,7 @@ export const ArticleResultView: React.FC<ArticleResultViewProps> = ({
                     rows={14}
                     value={editedText}
                     onChange={(e) => setEditedText(e.target.value)}
-                    className="w-full p-4 bg-white border border-stone-300 rounded-xl text-xs sm:text-sm text-stone-900 font-sans leading-relaxed focus:ring-2 focus:ring-teal-500"
+                    className="w-full p-4 bg-surface border border-line rounded-control text-xs sm:text-sm text-ink font-sans leading-relaxed focus:ring-2 focus:ring-accent"
                   />
                 </div>
               </div>
@@ -785,21 +830,21 @@ export const ArticleResultView: React.FC<ArticleResultViewProps> = ({
 
           {/* Article Header Details */}
           <div className="space-y-4 max-w-3xl mx-auto text-center">
-            <div className="inline-flex flex-wrap items-center justify-center gap-2 bg-stone-100 px-3.5 py-1.5 rounded-full text-xs font-semibold text-stone-700">
+            <div className="inline-flex flex-wrap items-center justify-center gap-2 bg-surface-raised px-3.5 py-1.5 rounded-full text-xs font-semibold text-ink-muted">
               <span>{post.approachName || post.tone || 'Visão do Autor'}</span>
               <span>•</span>
               <span className="flex items-center space-x-1">
-                <Clock className="w-3 h-3 text-stone-500" />
+                <Clock className="w-3 h-3 text-ink-faint" />
                 <span>{post.review?.readingTimeMinutes || 4} min de leitura</span>
               </span>
             </div>
 
-            <h1 className="font-serif font-bold text-2xl sm:text-4xl text-stone-900 leading-tight">
+            <h1 className="font-serif font-bold text-2xl sm:text-4xl text-ink leading-tight">
               {displayedTitle}
             </h1>
 
             {displayedSubtitle && (
-              <p className="text-stone-600 font-serif italic text-base sm:text-lg">
+              <p className="text-ink-muted font-serif italic text-base sm:text-lg">
                 {displayedSubtitle}
               </p>
             )}
@@ -809,13 +854,13 @@ export const ArticleResultView: React.FC<ArticleResultViewProps> = ({
               {articleTags.map((tag, idx) => (
                 <span
                   key={idx}
-                  className="bg-stone-100 text-stone-800 text-xs font-semibold px-2.5 py-1 rounded-lg flex items-center space-x-1 border border-stone-200"
+                  className="bg-surface-raised text-ink text-xs font-semibold px-2.5 py-1 rounded-control flex items-center space-x-1 border border-line"
                 >
-                  <Tag className="w-3 h-3 text-amber-600" />
+                  <Tag className="w-3 h-3 text-accent-ink" />
                   <span>#{tag}</span>
                   <button
                     onClick={() => handleRemoveTag(tag)}
-                    className="ml-1 text-stone-400 hover:text-rose-600 transition-colors"
+                    className="ml-1 text-ink-faint hover:text-danger-ink transition-colors"
                     title="Remover tag"
                   >
                     ×
@@ -836,12 +881,12 @@ export const ArticleResultView: React.FC<ArticleResultViewProps> = ({
                         handleAddTag();
                       }
                     }}
-                    className="w-24 px-2 py-0.5 bg-white border border-stone-300 rounded-lg text-xs text-stone-900 focus:ring-2 focus:ring-teal-500"
+                    className="w-24 px-2 py-0.5 bg-surface border border-line rounded-control text-xs text-ink focus:ring-2 focus:ring-accent"
                     autoFocus
                   />
                   <button
                     onClick={handleAddTag}
-                    className="px-2 py-0.5 bg-teal-800 text-white font-bold text-xs rounded-lg cursor-pointer"
+                    className="px-2 py-0.5 bg-accent text-ink font-bold text-xs rounded-control cursor-pointer"
                   >
                     OK
                   </button>
@@ -849,9 +894,9 @@ export const ArticleResultView: React.FC<ArticleResultViewProps> = ({
               ) : (
                 <button
                   onClick={() => setShowTagInput(true)}
-                  className="bg-amber-50 hover:bg-amber-100 text-amber-900 text-xs font-semibold px-2.5 py-1 rounded-lg border border-amber-200 flex items-center space-x-1 transition-all cursor-pointer"
+                  className="bg-accent-soft hover:bg-accent-soft text-accent-ink text-xs font-semibold px-2.5 py-1 rounded-control border border-accent/40 flex items-center space-x-1 transition-all cursor-pointer"
                 >
-                  <Plus className="w-3 h-3 text-amber-600" />
+                  <Plus className="w-3 h-3 text-accent-ink" />
                   <span>Tag</span>
                 </button>
               )}
@@ -862,7 +907,7 @@ export const ArticleResultView: React.FC<ArticleResultViewProps> = ({
           {/* Cover Image Box */}
           {post.image?.imageUrl && (
             <div className="space-y-2">
-              <div className="relative rounded-2xl overflow-hidden shadow-md group border border-stone-200 bg-stone-100 min-h-[260px] flex items-center justify-center">
+              <div className="relative rounded-panel overflow-hidden shadow-md group border border-line bg-surface-raised min-h-[260px] flex items-center justify-center">
                 <img
                   key={imageSrc}
                   src={imageSrc}
@@ -878,15 +923,15 @@ export const ArticleResultView: React.FC<ArticleResultViewProps> = ({
                 />
 
                 {isRegeneratingImage && (
-                  <div className="absolute inset-0 bg-stone-900/50 backdrop-blur-xs flex flex-col items-center justify-center text-white space-y-2">
-                    <Loader2 className="w-8 h-8 animate-spin text-amber-400" />
+                  <div className="absolute inset-0 bg-surface/50 backdrop-blur-xs flex flex-col items-center justify-center text-ink space-y-2">
+                    <Loader2 className="w-8 h-8 animate-spin text-accent-ink" />
                     <span className="text-xs font-semibold uppercase tracking-wider">Criando Nova Ilustração Editorial...</span>
                   </div>
                 )}
 
                 {!isRegeneratingImage && post.image.conceptExplanation && (
-                  <div className="absolute inset-0 bg-stone-900/40 opacity-0 group-hover:opacity-100 transition-all flex items-end p-4">
-                    <span className="text-white text-xs bg-stone-900/80 backdrop-blur-md px-3 py-1.5 rounded-lg font-sans">
+                  <div className="absolute inset-0 bg-surface/40 opacity-0 group-hover:opacity-100 transition-all flex items-end p-4">
+                    <span className="text-ink text-xs bg-surface/80 backdrop-blur-md px-3 py-1.5 rounded-control font-sans">
                       💡 Metáfora Visual: {post.image.conceptExplanation}
                     </span>
                   </div>
@@ -894,14 +939,14 @@ export const ArticleResultView: React.FC<ArticleResultViewProps> = ({
               </div>
 
               {/* Regenerate image controls */}
-              <div className="bg-stone-50 border border-stone-200 rounded-2xl p-4 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
+              <div className="bg-surface-sunken border border-line rounded-panel p-4 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
                 <div className="flex items-center space-x-2">
-                  <ImageIcon className="w-4 h-4 text-amber-600 shrink-0" />
-                  <span className="text-stone-700 font-medium">Trocar estilo da capa:</span>
+                  <ImageIcon className="w-4 h-4 text-accent-ink shrink-0" />
+                  <span className="text-ink-muted font-medium">Trocar estilo da capa:</span>
                   <select
                     value={selectedStyleForRegen}
                     onChange={(e) => setSelectedStyleForRegen(e.target.value)}
-                    className="bg-white border border-stone-300 rounded-lg px-2.5 py-1 text-xs text-stone-800 focus:ring-2 focus:ring-amber-500"
+                    className="bg-surface border border-line rounded-control px-2.5 py-1 text-xs text-ink focus:ring-2 focus:ring-accent"
                   >
                     {VISUAL_STYLES.map((st) => (
                       <option key={st.id} value={st.id}>
@@ -915,7 +960,7 @@ export const ArticleResultView: React.FC<ArticleResultViewProps> = ({
                   <button
                     onClick={() => onRegenerateImage(selectedStyleForRegen)}
                     disabled={isRegeneratingImage}
-                    className="px-3.5 py-1.5 bg-amber-600 hover:bg-amber-700 text-white font-semibold rounded-lg flex items-center space-x-1.5 transition-all shadow-xs disabled:opacity-50 cursor-pointer min-h-[36px]"
+                    className="px-3.5 py-1.5 bg-accent hover:bg-accent text-ink font-semibold rounded-control flex items-center space-x-1.5 transition-all shadow-xs disabled:opacity-50 cursor-pointer min-h-[36px]"
                   >
                     <RefreshCw className={`w-3.5 h-3.5 ${isRegeneratingImage ? 'animate-spin' : ''}`} />
                     <span>{isRegeneratingImage ? 'Gerando Imagem...' : 'Regerar Imagem'}</span>
@@ -927,16 +972,16 @@ export const ArticleResultView: React.FC<ArticleResultViewProps> = ({
 
           {/* Fixed Floating Bottom Interactive Selection Correction Dock */}
           {(selectedSnippet || selectionMessage) && (
-            <div className="fixed bottom-20 md:bottom-6 left-1/2 -translate-x-1/2 z-50 w-[94%] max-w-2xl bg-gradient-to-r from-stone-900 via-stone-950 to-amber-950 text-white rounded-3xl p-4 sm:p-5 shadow-2xl border border-amber-500/50 space-y-3.5 animate-fade-in backdrop-blur-md">
-              <div className="flex items-center justify-between border-b border-stone-800 pb-2.5">
-                <div className="flex items-center space-x-2 text-amber-300 font-bold text-xs sm:text-sm uppercase tracking-wider">
-                  <Sparkles className="w-4 h-4 text-amber-400 animate-pulse" />
+            <div className="fixed bottom-20 md:bottom-6 left-1/2 -translate-x-1/2 z-50 w-[94%] max-w-2xl bg-surface-raised text-ink rounded-panel p-4 sm:p-5 shadow-2xl border border-accent/40/50 space-y-3.5 animate-fade-in backdrop-blur-md">
+              <div className="flex items-center justify-between border-b border-line pb-2.5">
+                <div className="flex items-center space-x-2 text-accent-ink font-bold text-xs sm:text-sm uppercase tracking-wider">
+                  <Sparkles className="w-4 h-4 text-accent-ink animate-pulse" />
                   <span>Corretor Inteligente de Trecho Selecionado</span>
                 </div>
                 <button
                   type="button"
                   onClick={handleCloseSelectionBox}
-                  className="text-stone-400 hover:text-white p-1 rounded-lg bg-stone-800 hover:bg-stone-700 transition-all cursor-pointer"
+                  className="text-ink-faint hover:text-ink p-1 rounded-control bg-surface-raised hover:bg-surface transition-all cursor-pointer"
                   title="Fechar Corretor"
                 >
                   <X className="w-4 h-4" />
@@ -945,30 +990,30 @@ export const ArticleResultView: React.FC<ArticleResultViewProps> = ({
 
               {selectionMessage && (
                 <div
-                  className={`p-3 rounded-xl text-xs font-medium flex items-center space-x-2 ${
+                  className={`p-3 rounded-control text-xs font-medium flex items-center space-x-2 ${
                     selectionMessage.type === 'success'
-                      ? 'bg-emerald-950/90 border border-emerald-500/50 text-emerald-200'
-                      : 'bg-rose-950/90 border border-rose-500/50 text-rose-200'
+                      ? 'bg-accent/90 border border-accent/40/50 text-accent-ink'
+                      : 'bg-danger/90 border border-danger/40/50 text-danger-ink'
                   }`}
                 >
-                  <Check className="w-4 h-4 text-emerald-300 shrink-0" />
+                  <Check className="w-4 h-4 text-accent-ink shrink-0" />
                   <span>{selectionMessage.text}</span>
                 </div>
               )}
 
               {selectedSnippet && (
                 <div className="space-y-3.5">
-                  <div className="bg-stone-800/90 p-3 rounded-2xl border border-stone-700/80">
-                    <span className="text-[10px] font-bold text-amber-400 uppercase tracking-widest block mb-1">
+                  <div className="bg-surface-raised/90 p-3 rounded-panel border border-line/80">
+                    <span className="text-[10px] font-bold text-accent-ink uppercase tracking-widest block mb-1">
                       Trecho Selecionado para Ajuste:
                     </span>
-                    <p className="text-xs text-stone-200 italic font-serif leading-relaxed line-clamp-2">
+                    <p className="text-xs text-ink italic font-serif leading-relaxed line-clamp-2">
                       "{selectedSnippet}"
                     </p>
                   </div>
 
                   <div className="space-y-1.5">
-                    <span className="text-[11px] font-bold text-amber-200 uppercase tracking-wider block">
+                    <span className="text-[11px] font-bold text-accent-ink uppercase tracking-wider block">
                       💡 Sugestões Rápidas da IA:
                     </span>
                     <div className="flex flex-wrap gap-1.5 max-h-24 overflow-y-auto pr-1">
@@ -978,17 +1023,17 @@ export const ArticleResultView: React.FC<ArticleResultViewProps> = ({
                           type="button"
                           disabled={isRefiningSelection}
                           onClick={() => executeRefineSelection(chip)}
-                          className="text-xs bg-stone-800 hover:bg-amber-600 text-stone-200 hover:text-white px-3 py-1.5 rounded-xl border border-stone-700 hover:border-amber-400 transition-all font-medium cursor-pointer disabled:opacity-50 flex items-center space-x-1 shrink-0"
+                          className="text-xs bg-surface-raised hover:bg-accent text-ink hover:text-ink px-3 py-1.5 rounded-control border border-line hover:border-accent/40 transition-all font-medium cursor-pointer disabled:opacity-50 flex items-center space-x-1 shrink-0"
                         >
-                          <Compass className="w-3 h-3 text-amber-400 shrink-0" />
+                          <Compass className="w-3 h-3 text-accent-ink shrink-0" />
                           <span>{chip}</span>
                         </button>
                       ))}
                     </div>
                   </div>
 
-                  <div className="space-y-1.5 pt-1 border-t border-stone-800">
-                    <span className="text-[11px] font-bold text-stone-300 uppercase tracking-wider block">
+                  <div className="space-y-1.5 pt-1 border-t border-line">
+                    <span className="text-[11px] font-bold text-ink-muted uppercase tracking-wider block">
                       Ou digite exatamente a correção desejada:
                     </span>
                     <div className="flex flex-col sm:flex-row items-stretch gap-2">
@@ -1003,13 +1048,13 @@ export const ArticleResultView: React.FC<ArticleResultViewProps> = ({
                             executeRefineSelection();
                           }
                         }}
-                        className="flex-1 bg-stone-800 border border-stone-700 rounded-xl px-3.5 py-2 text-xs text-white placeholder:text-stone-500 focus:ring-2 focus:ring-amber-400"
+                        className="flex-1 bg-surface-raised border border-line rounded-control px-3.5 py-2 text-xs text-ink placeholder:text-ink-faint focus:ring-2 focus:ring-accent"
                       />
                       <button
                         type="button"
                         onClick={() => executeRefineSelection()}
                         disabled={isRefiningSelection || !customRefineInstruction.trim()}
-                        className="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-stone-950 font-bold text-xs rounded-xl transition-all shadow-md flex items-center justify-center space-x-1.5 disabled:opacity-50 cursor-pointer shrink-0"
+                        className="px-4 py-2 bg-accent hover:bg-accent text-ink font-bold text-xs rounded-control transition-all shadow-md flex items-center justify-center space-x-1.5 disabled:opacity-50 cursor-pointer shrink-0"
                       >
                         {isRefiningSelection ? (
                           <>
@@ -1018,7 +1063,7 @@ export const ArticleResultView: React.FC<ArticleResultViewProps> = ({
                           </>
                         ) : (
                           <>
-                            <Sparkles className="w-3.5 h-3.5 text-stone-950" />
+                            <Sparkles className="w-3.5 h-3.5 text-ink" />
                             <span>Reescrever Trecho</span>
                           </>
                         )}
@@ -1031,20 +1076,20 @@ export const ArticleResultView: React.FC<ArticleResultViewProps> = ({
           )}
 
           {/* Clean Reader Mode Control Toolbar */}
-          <div className="max-w-3xl mx-auto bg-stone-50 border border-stone-200 rounded-2xl p-3 sm:p-4 flex flex-wrap items-center justify-between gap-3 text-xs select-none shadow-2xs">
+          <div className="max-w-3xl mx-auto bg-surface-sunken border border-line rounded-panel p-3 sm:p-4 flex flex-wrap items-center justify-between gap-3 text-xs select-none shadow-2xs">
             <div className="flex items-center space-x-2">
-              <BookOpen className="w-4 h-4 text-amber-600 shrink-0" />
-              <span className="font-bold text-stone-800">Modo de Leitura:</span>
+              <BookOpen className="w-4 h-4 text-accent-ink shrink-0" />
+              <span className="font-bold text-ink">Modo de Leitura:</span>
             </div>
 
             <div className="flex flex-wrap items-center gap-3">
               {/* Font Size Selector */}
-              <div className="flex items-center space-x-1 bg-white p-1 rounded-xl border border-stone-200">
-                <span className="text-[10px] text-stone-400 font-bold px-1.5">TAMANHO:</span>
+              <div className="flex items-center space-x-1 bg-surface p-1 rounded-control border border-line">
+                <span className="text-[10px] text-ink-faint font-bold px-1.5">TAMANHO:</span>
                 <button
                   onClick={() => setReaderFontSize('sm')}
-                  className={`px-2 py-0.5 rounded-lg font-bold text-xs transition-all cursor-pointer ${
-                    readerFontSize === 'sm' ? 'bg-amber-600 text-white shadow-xs' : 'text-stone-600 hover:text-stone-900'
+                  className={`px-2 py-0.5 rounded-control font-bold text-xs transition-all cursor-pointer ${
+                    readerFontSize === 'sm' ? 'bg-accent text-ink shadow-xs' : 'text-ink-muted hover:text-ink'
                   }`}
                   title="Fonte Pequena"
                 >
@@ -1052,8 +1097,8 @@ export const ArticleResultView: React.FC<ArticleResultViewProps> = ({
                 </button>
                 <button
                   onClick={() => setReaderFontSize('base')}
-                  className={`px-2 py-0.5 rounded-lg font-bold text-xs transition-all cursor-pointer ${
-                    readerFontSize === 'base' ? 'bg-amber-600 text-white shadow-xs' : 'text-stone-600 hover:text-stone-900'
+                  className={`px-2 py-0.5 rounded-control font-bold text-xs transition-all cursor-pointer ${
+                    readerFontSize === 'base' ? 'bg-accent text-ink shadow-xs' : 'text-ink-muted hover:text-ink'
                   }`}
                   title="Fonte Média (Padrão)"
                 >
@@ -1061,8 +1106,8 @@ export const ArticleResultView: React.FC<ArticleResultViewProps> = ({
                 </button>
                 <button
                   onClick={() => setReaderFontSize('lg')}
-                  className={`px-2 py-0.5 rounded-lg font-bold text-xs transition-all cursor-pointer ${
-                    readerFontSize === 'lg' ? 'bg-amber-600 text-white shadow-xs' : 'text-stone-600 hover:text-stone-900'
+                  className={`px-2 py-0.5 rounded-control font-bold text-xs transition-all cursor-pointer ${
+                    readerFontSize === 'lg' ? 'bg-accent text-ink shadow-xs' : 'text-ink-muted hover:text-ink'
                   }`}
                   title="Fonte Grande"
                 >
@@ -1071,28 +1116,28 @@ export const ArticleResultView: React.FC<ArticleResultViewProps> = ({
               </div>
 
               {/* Theme Selector */}
-              <div className="flex items-center space-x-1 bg-white p-1 rounded-xl border border-stone-200">
-                <span className="text-[10px] text-stone-400 font-bold px-1.5">TEMA:</span>
+              <div className="flex items-center space-x-1 bg-surface p-1 rounded-control border border-line">
+                <span className="text-[10px] text-ink-faint font-bold px-1.5">TEMA:</span>
                 <button
                   onClick={() => setReaderTheme('light')}
-                  className={`px-2.5 py-0.5 rounded-lg font-semibold text-xs transition-all cursor-pointer ${
-                    readerTheme === 'light' ? 'bg-stone-900 text-white shadow-xs' : 'text-stone-700 hover:bg-stone-100'
+                  className={`px-2.5 py-0.5 rounded-control font-semibold text-xs transition-all cursor-pointer ${
+                    readerTheme === 'light' ? 'bg-surface text-ink shadow-xs' : 'text-ink-muted hover:bg-surface-raised'
                   }`}
                 >
                   ☀️ Claro
                 </button>
                 <button
                   onClick={() => setReaderTheme('sepia')}
-                  className={`px-2.5 py-0.5 rounded-lg font-semibold text-xs transition-all cursor-pointer ${
-                    readerTheme === 'sepia' ? 'bg-[#78350f] text-[#fef3c7] shadow-xs' : 'text-amber-900 hover:bg-amber-50'
+                  className={`px-2.5 py-0.5 rounded-control font-semibold text-xs transition-all cursor-pointer ${
+                    readerTheme === 'sepia' ? 'bg-[#78350f] text-[#fef3c7] shadow-xs' : 'text-accent-ink hover:bg-accent-soft'
                   }`}
                 >
                   📜 Sépia
                 </button>
                 <button
                   onClick={() => setReaderTheme('dark')}
-                  className={`px-2.5 py-0.5 rounded-lg font-semibold text-xs transition-all cursor-pointer ${
-                    readerTheme === 'dark' ? 'bg-stone-800 text-amber-300 shadow-xs' : 'text-stone-700 hover:bg-stone-100'
+                  className={`px-2.5 py-0.5 rounded-control font-semibold text-xs transition-all cursor-pointer ${
+                    readerTheme === 'dark' ? 'bg-surface-raised text-accent-ink shadow-xs' : 'text-ink-muted hover:bg-surface-raised'
                   }`}
                 >
                   🌙 Escuro
@@ -1103,20 +1148,20 @@ export const ArticleResultView: React.FC<ArticleResultViewProps> = ({
 
           {/* Formatted Article Content */}
           <div
-            className={`max-w-3xl mx-auto rounded-3xl p-6 sm:p-10 transition-all shadow-sm ${
+            className={`max-w-3xl mx-auto rounded-panel p-6 sm:p-10 transition-all shadow-sm ${
               readerTheme === 'sepia'
                 ? 'bg-[#fbf7ee] text-[#3a2e2b] border border-[#e8dfc8]'
                 : readerTheme === 'dark'
-                ? 'bg-[#1c1917] text-[#e7e5e4] border border-stone-800'
-                : 'bg-white text-stone-800 border border-stone-200'
+                ? 'bg-[#1c1917] text-[#e7e5e4] border border-line'
+                : 'bg-surface text-ink border border-line'
             } select-text cursor-text space-y-5`}
             title="Selecione qualquer trecho com o mouse para abrir o corretor de texto inteligente por IA"
           >
             <div className={`flex items-center justify-between text-xs border-b pb-2 mb-4 select-none ${
-              readerTheme === 'dark' ? 'text-stone-500 border-stone-800' : 'text-stone-400 border-stone-100'
+              readerTheme === 'dark' ? 'text-ink-faint border-line' : 'text-ink-faint border-line'
             }`}>
               <span className="flex items-center space-x-1 italic">
-                <Edit3 className="w-3.5 h-3.5 text-amber-600 shrink-0" />
+                <Edit3 className="w-3.5 h-3.5 text-accent-ink shrink-0" />
                 <span>Dica: Selecione qualquer frase para reescrever com IA ou use 'Editar no Teclado'.</span>
               </span>
             </div>
@@ -1134,7 +1179,7 @@ export const ArticleResultView: React.FC<ArticleResultViewProps> = ({
                     <h2 key={idx} className={`font-serif font-bold ${
                       readerFontSize === 'sm' ? 'text-lg' : readerFontSize === 'lg' ? 'text-2xl' : 'text-xl sm:text-2xl'
                     } mt-8 mb-4 border-b pb-2 ${
-                      readerTheme === 'dark' ? 'text-amber-200 border-stone-800' : 'text-stone-900 border-stone-200'
+                      readerTheme === 'dark' ? 'text-accent-ink border-line' : 'text-ink border-line'
                     }`}>
                       {paragraph.replace('## ', '')}
                     </h2>
@@ -1146,7 +1191,7 @@ export const ArticleResultView: React.FC<ArticleResultViewProps> = ({
                     <h3 key={idx} className={`font-serif font-bold ${
                       readerFontSize === 'sm' ? 'text-base' : readerFontSize === 'lg' ? 'text-xl' : 'text-lg sm:text-xl'
                     } mt-6 mb-3 ${
-                      readerTheme === 'dark' ? 'text-amber-100' : 'text-stone-800'
+                      readerTheme === 'dark' ? 'text-amber-100' : 'text-ink'
                     }`}>
                       {paragraph.replace('### ', '')}
                     </h3>
@@ -1157,7 +1202,7 @@ export const ArticleResultView: React.FC<ArticleResultViewProps> = ({
                   const items = paragraph.split('\n');
                   return (
                     <ul key={idx} className={`list-disc pl-6 space-y-2 ${
-                      readerTheme === 'dark' ? 'text-stone-300' : 'text-stone-700'
+                      readerTheme === 'dark' ? 'text-ink-muted' : 'text-ink-muted'
                     }`}>
                       {items.map((item, i) => (
                         <li key={i}>{item.replace(/^[-*]\s+/, '')}</li>
@@ -1171,15 +1216,15 @@ export const ArticleResultView: React.FC<ArticleResultViewProps> = ({
                   return (
                     <blockquote
                       key={idx}
-                      className={`my-6 p-5 sm:p-6 rounded-2xl border-l-4 font-serif italic relative ${
+                      className={`my-6 p-5 sm:p-6 rounded-panel border-l-4 font-serif italic relative ${
                         readerTheme === 'dark'
-                          ? 'bg-stone-900/90 border-amber-500 text-amber-100'
+                          ? 'bg-surface/90 border-accent/40 text-amber-100'
                           : readerTheme === 'sepia'
-                          ? 'bg-[#f4ebd0]/80 border-amber-700 text-[#2c221e]'
-                          : 'bg-amber-50/80 border-amber-600 text-amber-950'
+                          ? 'bg-[#f4ebd0]/80 border-accent/40 text-[#2c221e]'
+                          : 'bg-accent-soft/80 border-accent/40 text-accent-ink'
                       }`}
                     >
-                      <span className="text-3xl sm:text-4xl font-serif text-amber-600/40 absolute top-1 left-3 select-none leading-none">
+                      <span className="text-3xl sm:text-4xl font-serif text-accent-ink/40 absolute top-1 left-3 select-none leading-none">
                         “
                       </span>
                       <p className={`relative z-10 pl-4 ${
@@ -1199,7 +1244,7 @@ export const ArticleResultView: React.FC<ArticleResultViewProps> = ({
                       ? 'text-base sm:text-lg'
                       : 'text-sm sm:text-base'
                   } ${
-                    readerTheme === 'dark' ? 'text-stone-200' : 'text-stone-800'
+                    readerTheme === 'dark' ? 'text-ink' : 'text-ink'
                   }`}>
                     {paragraph}
                   </p>
@@ -1208,12 +1253,12 @@ export const ArticleResultView: React.FC<ArticleResultViewProps> = ({
 
             {/* SEÇÃO DE PERGUNTAS PARA REFLEXÃO PSICOTERAPÊUTICA / LEVAR À SESSÃO */}
             <div className={`mt-10 pt-8 border-t space-y-4 ${
-              readerTheme === 'dark' ? 'border-stone-800' : 'border-stone-200'
+              readerTheme === 'dark' ? 'border-line' : 'border-line'
             }`}>
-              <div className="bg-gradient-to-br from-teal-900 via-stone-900 to-indigo-950 text-white rounded-2xl p-5 sm:p-7 space-y-4 shadow-lg border border-teal-500/30">
-                <div className="flex items-center justify-between border-b border-stone-800 pb-3">
-                  <div className="flex items-center space-x-2 text-amber-300 font-serif font-bold text-base sm:text-lg">
-                    <Compass className="w-5 h-5 text-amber-400 shrink-0" />
+              <div className="bg-surface-raised text-ink rounded-panel p-5 sm:p-7 space-y-4 shadow-lg border border-accent/40/30">
+                <div className="flex items-center justify-between border-b border-line pb-3">
+                  <div className="flex items-center space-x-2 text-accent-ink font-serif font-bold text-base sm:text-lg">
+                    <Compass className="w-5 h-5 text-accent-ink shrink-0" />
                     <span>Perguntas para Reflexão Psicoterapêutica</span>
                   </div>
                   <button
@@ -1224,42 +1269,42 @@ export const ArticleResultView: React.FC<ArticleResultViewProps> = ({
                         addToast('success', 'Perguntas copiadas!', 'Prontas para envio ao paciente ou anotação pessoal.');
                       }
                     }}
-                    className="px-3 py-1.5 bg-amber-500 hover:bg-amber-600 text-stone-950 font-bold text-xs rounded-xl flex items-center space-x-1.5 transition-all shadow-xs cursor-pointer shrink-0"
+                    className="px-3 py-1.5 bg-accent hover:bg-accent text-ink font-bold text-xs rounded-control flex items-center space-x-1.5 transition-all shadow-xs cursor-pointer shrink-0"
                   >
-                    {copiedField === 'reflection_questions' ? <Check className="w-3.5 h-3.5 text-stone-950" /> : <Copy className="w-3.5 h-3.5 text-stone-950" />}
+                    {copiedField === 'reflection_questions' ? <Check className="w-3.5 h-3.5 text-ink" /> : <Copy className="w-3.5 h-3.5 text-ink" />}
                     <span>{copiedField === 'reflection_questions' ? 'Copiado!' : 'Copiar Perguntas'}</span>
                   </button>
                 </div>
 
-                <p className="text-xs text-stone-300 leading-relaxed font-sans">
+                <p className="text-xs text-ink-muted leading-relaxed font-sans">
                   Instigações não-prescritivas elaboradas para desacelerar o automatismo e permitir que o leitor ou paciente aprofunde a sua experiência:
                 </p>
 
                 <div className="space-y-2.5 pt-1">
-                  <div className="flex items-start space-x-3 bg-stone-800/80 p-3.5 rounded-xl border border-stone-700/80">
-                    <span className="w-6 h-6 rounded-full bg-teal-800 text-teal-200 text-xs font-bold flex items-center justify-center shrink-0">1</span>
-                    <p className="text-xs sm:text-sm text-stone-100 font-serif leading-snug">
+                  <div className="flex items-start space-x-3 bg-surface-raised/80 p-3.5 rounded-control border border-line/80">
+                    <span className="w-6 h-6 rounded-full bg-accent text-accent-ink text-xs font-bold flex items-center justify-center shrink-0">1</span>
+                    <p className="text-xs sm:text-sm text-ink font-serif leading-snug">
                       Como este tema se conecta com situações e relacionamentos concretos do seu momento atual?
                     </p>
                   </div>
 
-                  <div className="flex items-start space-x-3 bg-stone-800/80 p-3.5 rounded-xl border border-stone-700/80">
-                    <span className="w-6 h-6 rounded-full bg-teal-800 text-teal-200 text-xs font-bold flex items-center justify-center shrink-0">2</span>
-                    <p className="text-xs sm:text-sm text-stone-100 font-serif leading-snug">
+                  <div className="flex items-start space-x-3 bg-surface-raised/80 p-3.5 rounded-control border border-line/80">
+                    <span className="w-6 h-6 rounded-full bg-accent text-accent-ink text-xs font-bold flex items-center justify-center shrink-0">2</span>
+                    <p className="text-xs sm:text-sm text-ink font-serif leading-snug">
                       O que você percebe em seu corpo e em suas emoções ao refletir sobre as tensões expostas neste ensaio?
                     </p>
                   </div>
 
-                  <div className="flex items-start space-x-3 bg-stone-800/80 p-3.5 rounded-xl border border-stone-700/80">
-                    <span className="w-6 h-6 rounded-full bg-teal-800 text-teal-200 text-xs font-bold flex items-center justify-center shrink-0">3</span>
-                    <p className="text-xs sm:text-sm text-stone-100 font-serif leading-snug">
+                  <div className="flex items-start space-x-3 bg-surface-raised/80 p-3.5 rounded-control border border-line/80">
+                    <span className="w-6 h-6 rounded-full bg-accent text-accent-ink text-xs font-bold flex items-center justify-center shrink-0">3</span>
+                    <p className="text-xs sm:text-sm text-ink font-serif leading-snug">
                       O que mudaria em sua rotina se você pudesse acolher esse sentimento sem tentar eliminá-lo de forma apressada?
                     </p>
                   </div>
 
-                  <div className="flex items-start space-x-3 bg-stone-800/80 p-3.5 rounded-xl border border-stone-700/80">
-                    <span className="w-6 h-6 rounded-full bg-teal-800 text-teal-200 text-xs font-bold flex items-center justify-center shrink-0">4</span>
-                    <p className="text-xs sm:text-sm text-stone-100 font-serif leading-snug">
+                  <div className="flex items-start space-x-3 bg-surface-raised/80 p-3.5 rounded-control border border-line/80">
+                    <span className="w-6 h-6 rounded-full bg-accent text-accent-ink text-xs font-bold flex items-center justify-center shrink-0">4</span>
+                    <p className="text-xs sm:text-sm text-ink font-serif leading-snug">
                       Que pergunta singular você gostaria de levar para a sua próxima sessão de psicoterapia a partir deste texto?
                     </p>
                   </div>
@@ -1270,12 +1315,12 @@ export const ArticleResultView: React.FC<ArticleResultViewProps> = ({
           </div>
 
           {/* Ethics Lembrete Footer */}
-          <div className="max-w-3xl mx-auto bg-teal-50 border border-teal-200 rounded-2xl p-4 sm:p-6 text-xs sm:text-sm text-teal-900 space-y-2">
-            <div className="flex items-center space-x-2 font-bold text-teal-950">
-              <Heart className="w-4 h-4 text-teal-700 shrink-0" />
+          <div className="max-w-3xl mx-auto bg-accent-soft border border-accent/40 rounded-panel p-4 sm:p-6 text-xs sm:text-sm text-accent-ink space-y-2">
+            <div className="flex items-center space-x-2 font-bold text-accent-ink">
+              <Heart className="w-4 h-4 text-accent-ink shrink-0" />
               <span>Nota de Acolhimento & Ética Profissional</span>
             </div>
-            <p className="text-teal-800 leading-relaxed">
+            <p className="text-accent-ink leading-relaxed">
               Este conteúdo foi produzido com intuito estritamente psicoeducativo. Se você se identifica com os desafios ou emoções descritos neste texto, lembre-se de que a psicoterapia com um profissional registrado é o espaço ideal para escuta e cuidado individualizado.
             </p>
           </div>
@@ -1286,14 +1331,14 @@ export const ArticleResultView: React.FC<ArticleResultViewProps> = ({
       {/* TAB 2: MULTIFORMAT CAROUSEL & REELS GENERATOR */}
       {activeTab === 'multiformat' && (
         <div className="space-y-6">
-          <div className="bg-white rounded-3xl p-4 sm:p-8 border border-stone-200 shadow-sm space-y-6">
-            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-stone-100 pb-4">
+          <div className="bg-surface rounded-panel p-4 sm:p-8 border border-line shadow-sm space-y-6">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-line pb-4">
               <div>
-                <div className="flex items-center space-x-2 text-indigo-900 font-bold text-lg">
-                  <Layers className="w-5 h-5 text-indigo-600 shrink-0" />
+                <div className="flex items-center space-x-2 text-accent-ink font-bold text-lg">
+                  <Layers className="w-5 h-5 text-accent-ink shrink-0" />
                   <h2>Gerador de Carrossel (5-8 Slides) & Roteiro de Vídeo/Reels</h2>
                 </div>
-                <p className="text-xs text-stone-600 mt-1">
+                <p className="text-xs text-ink-muted mt-1">
                   Transforme o ensaio de psicologia em slides dinâmicos para Instagram/LinkedIn e em roteiro de 60s para vídeo.
                 </p>
               </div>
@@ -1301,16 +1346,16 @@ export const ArticleResultView: React.FC<ArticleResultViewProps> = ({
               <button
                 onClick={handleGenerateDerivedFormats}
                 disabled={isGeneratingDerived}
-                className="w-full sm:w-auto px-4 py-2.5 bg-indigo-700 hover:bg-indigo-800 text-white font-bold text-xs sm:text-sm rounded-xl shadow-md flex items-center justify-center space-x-2 transition-all cursor-pointer min-h-[40px] disabled:opacity-50"
+                className="w-full sm:w-auto px-4 py-2.5 bg-accent hover:bg-accent text-ink font-bold text-xs sm:text-sm rounded-control shadow-md flex items-center justify-center space-x-2 transition-all cursor-pointer min-h-[40px] disabled:opacity-50"
               >
                 {isGeneratingDerived ? (
                   <>
-                    <Loader2 className="w-4 h-4 animate-spin text-indigo-200" />
+                    <Loader2 className="w-4 h-4 animate-spin text-accent-ink" />
                     <span>Adaptando para Redes Sociais...</span>
                   </>
                 ) : (
                   <>
-                    <Sparkles className="w-4 h-4 text-amber-300" />
+                    <Sparkles className="w-4 h-4 text-accent-ink" />
                     <span>{derivedFormats ? 'Regerar Formatos' : 'Gerar Carrossel & Reels com IA'}</span>
                   </>
                 )}
@@ -1318,20 +1363,20 @@ export const ArticleResultView: React.FC<ArticleResultViewProps> = ({
             </div>
 
             {derivedError && (
-              <div className="p-4 bg-rose-50 border border-rose-200 rounded-2xl text-xs text-rose-800 flex items-center space-x-2">
-                <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
+              <div className="p-4 bg-danger-soft border border-danger/40 rounded-panel text-xs text-danger-ink flex items-center space-x-2">
+                <AlertCircle className="w-4 h-4 text-danger-ink shrink-0" />
                 <span>{derivedError}</span>
               </div>
             )}
 
             {!derivedFormats && !isGeneratingDerived && (
-              <div className="bg-stone-50 rounded-2xl p-8 sm:p-12 text-center border border-dashed border-stone-300 space-y-4">
-                <div className="w-12 h-12 rounded-full bg-indigo-100 flex items-center justify-center mx-auto text-indigo-600">
+              <div className="bg-surface-sunken rounded-panel p-8 sm:p-12 text-center border border-dashed border-line space-y-4">
+                <div className="w-12 h-12 rounded-full bg-accent-soft flex items-center justify-center mx-auto text-accent-ink">
                   <Layers className="w-6 h-6" />
                 </div>
                 <div className="space-y-1">
-                  <h3 className="font-bold text-stone-800 text-base">Nenhum carrossel gerado para este artigo</h3>
-                  <p className="text-xs text-stone-500 max-w-sm mx-auto">
+                  <h3 className="font-bold text-ink text-base">Nenhum carrossel gerado para este artigo</h3>
+                  <p className="text-xs text-ink-faint max-w-sm mx-auto">
                     Clique no botão acima para converter a essência reflexiva deste artigo em um deck de 5 a 8 slides e um roteiro gravável de 60 segundos.
                   </p>
                 </div>
@@ -1341,13 +1386,13 @@ export const ArticleResultView: React.FC<ArticleResultViewProps> = ({
             {derivedFormats && (
               <div className="space-y-6">
                 {/* Subtabs: Carousel vs Reels */}
-                <div className="flex border-b border-stone-200 space-x-4">
+                <div className="flex border-b border-line space-x-4">
                   <button
                     onClick={() => setDerivedActiveTab('carousel')}
                     className={`pb-3 text-xs sm:text-sm font-bold flex items-center space-x-2 border-b-2 transition-all cursor-pointer ${
                       derivedActiveTab === 'carousel'
-                        ? 'border-indigo-600 text-indigo-900'
-                        : 'border-transparent text-stone-500 hover:text-stone-800'
+                        ? 'border-accent/40 text-accent-ink'
+                        : 'border-transparent text-ink-faint hover:text-ink'
                     }`}
                   >
                     <Layers className="w-4 h-4" />
@@ -1358,11 +1403,11 @@ export const ArticleResultView: React.FC<ArticleResultViewProps> = ({
                     onClick={() => setDerivedActiveTab('reels')}
                     className={`pb-3 text-xs sm:text-sm font-bold flex items-center space-x-2 border-b-2 transition-all cursor-pointer ${
                       derivedActiveTab === 'reels'
-                        ? 'border-indigo-600 text-indigo-900'
-                        : 'border-transparent text-stone-500 hover:text-stone-800'
+                        ? 'border-accent/40 text-accent-ink'
+                        : 'border-transparent text-ink-faint hover:text-ink'
                     }`}
                   >
-                    <Film className="w-4 h-4 text-rose-500" />
+                    <Film className="w-4 h-4 text-danger-ink" />
                     <span>Roteiro para Vídeo Curto / Reels (60s)</span>
                   </button>
                 </div>
@@ -1370,8 +1415,8 @@ export const ArticleResultView: React.FC<ArticleResultViewProps> = ({
                 {/* Subtab 1: CAROUSEL SLIDES */}
                 {derivedActiveTab === 'carousel' && derivedFormats.carousel && (
                   <div className="space-y-6">
-                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 bg-stone-50 p-4 rounded-2xl border border-stone-200">
-                      <span className="text-xs text-stone-700 font-medium">
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 bg-surface-sunken p-4 rounded-panel border border-line">
+                      <span className="text-xs text-ink-muted font-medium">
                         📱 Copie o conteúdo slide por slide ou copie o carrossel completo de uma vez:
                       </span>
                       <button
@@ -1381,9 +1426,9 @@ export const ArticleResultView: React.FC<ArticleResultViewProps> = ({
                             .join('\n---\n\n');
                           handleCopyText(fullText, 'full_carousel');
                         }}
-                        className="px-3.5 py-1.5 bg-indigo-700 hover:bg-indigo-800 text-white font-bold text-xs rounded-xl flex items-center space-x-1.5 transition-all cursor-pointer shadow-xs min-h-[36px]"
+                        className="px-3.5 py-1.5 bg-accent hover:bg-accent text-ink font-bold text-xs rounded-control flex items-center space-x-1.5 transition-all cursor-pointer shadow-xs min-h-[36px]"
                       >
-                        {copiedField === 'full_carousel' ? <Check className="w-3.5 h-3.5 text-emerald-300" /> : <Copy className="w-3.5 h-3.5" />}
+                        {copiedField === 'full_carousel' ? <Check className="w-3.5 h-3.5 text-accent-ink" /> : <Copy className="w-3.5 h-3.5" />}
                         <span>{copiedField === 'full_carousel' ? 'Copiado!' : 'Copiar Carrossel Inteiro'}</span>
                       </button>
                     </div>
@@ -1393,11 +1438,11 @@ export const ArticleResultView: React.FC<ArticleResultViewProps> = ({
                       {derivedFormats.carousel.slides.map((slide) => (
                         <div
                           key={slide.slideNumber}
-                          className="bg-stone-900 text-stone-100 rounded-2xl p-5 border border-stone-800 flex flex-col justify-between space-y-4 shadow-md relative overflow-hidden"
+                          className="bg-surface text-ink rounded-panel p-5 border border-line flex flex-col justify-between space-y-4 shadow-md relative overflow-hidden"
                         >
                           <div className="space-y-2">
-                            <div className="flex items-center justify-between text-xs border-b border-stone-800 pb-2">
-                              <span className="font-bold text-amber-400 uppercase tracking-widest text-[10px]">
+                            <div className="flex items-center justify-between text-xs border-b border-line pb-2">
+                              <span className="font-bold text-accent-ink uppercase tracking-widest text-[10px]">
                                 SLIDE {slide.slideNumber} / {derivedFormats.carousel?.slides.length}
                               </span>
                               <button
@@ -1407,10 +1452,10 @@ export const ArticleResultView: React.FC<ArticleResultViewProps> = ({
                                     `slide_${slide.slideNumber}`
                                   )
                                 }
-                                className="text-[11px] text-stone-400 hover:text-white flex items-center space-x-1 bg-stone-800 hover:bg-stone-700 px-2.5 py-1 rounded-lg transition-all cursor-pointer"
+                                className="text-[11px] text-ink-faint hover:text-ink flex items-center space-x-1 bg-surface-raised hover:bg-surface px-2.5 py-1 rounded-control transition-all cursor-pointer"
                               >
                                 {copiedField === `slide_${slide.slideNumber}` ? (
-                                  <Check className="w-3 h-3 text-emerald-400" />
+                                  <Check className="w-3 h-3 text-accent-ink" />
                                 ) : (
                                   <Copy className="w-3 h-3" />
                                 )}
@@ -1422,13 +1467,13 @@ export const ArticleResultView: React.FC<ArticleResultViewProps> = ({
                               {slide.slideTitle}
                             </h4>
 
-                            <p className="text-xs text-stone-300 leading-relaxed font-sans">
+                            <p className="text-xs text-ink-muted leading-relaxed font-sans">
                               {slide.bodyText}
                             </p>
                           </div>
 
                           {slide.visualCue && (
-                            <div className="pt-2 border-t border-stone-800/80 text-[11px] text-stone-400 italic">
+                            <div className="pt-2 border-t border-line/80 text-[11px] text-ink-faint italic">
                               🎨 Clima visual: {slide.visualCue}
                             </div>
                           )}
@@ -1438,20 +1483,20 @@ export const ArticleResultView: React.FC<ArticleResultViewProps> = ({
 
                     {/* Caption Box */}
                     {derivedFormats.carousel.caption && (
-                      <div className="bg-stone-50 border border-stone-200 rounded-2xl p-5 space-y-2">
+                      <div className="bg-surface-sunken border border-line rounded-panel p-5 space-y-2">
                         <div className="flex items-center justify-between">
-                          <span className="font-bold text-xs text-stone-800">
+                          <span className="font-bold text-xs text-ink">
                             Legenda Sugerida para a Postagem do Carrossel:
                           </span>
                           <button
                             onClick={() => handleCopyText(derivedFormats.carousel!.caption, 'carousel_caption')}
-                            className="px-3 py-1 bg-white border border-stone-300 text-stone-800 text-xs font-semibold rounded-lg flex items-center space-x-1 cursor-pointer"
+                            className="px-3 py-1 bg-surface border border-line text-ink text-xs font-semibold rounded-control flex items-center space-x-1 cursor-pointer"
                           >
-                            {copiedField === 'carousel_caption' ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
+                            {copiedField === 'carousel_caption' ? <Check className="w-3.5 h-3.5 text-accent-ink" /> : <Copy className="w-3.5 h-3.5" />}
                             <span>Copiar Legenda</span>
                           </button>
                         </div>
-                        <p className="text-xs text-stone-700 font-sans leading-relaxed whitespace-pre-wrap">
+                        <p className="text-xs text-ink-muted font-sans leading-relaxed whitespace-pre-wrap">
                           {derivedFormats.carousel.caption}
                         </p>
                       </div>
@@ -1462,10 +1507,10 @@ export const ArticleResultView: React.FC<ArticleResultViewProps> = ({
                 {/* Subtab 2: REELS VIDEO SCRIPT */}
                 {derivedActiveTab === 'reels' && derivedFormats.reelsScript && (
                   <div className="space-y-6">
-                    <div className="bg-gradient-to-br from-stone-900 to-indigo-950 text-white rounded-3xl p-6 border border-stone-800 space-y-6 shadow-lg">
-                      <div className="flex items-center justify-between border-b border-stone-800 pb-3">
-                        <div className="flex items-center space-x-2 text-amber-400 font-bold text-sm">
-                          <Film className="w-4 h-4 text-amber-400" />
+                    <div className="bg-surface-raised text-ink rounded-panel p-6 border border-line space-y-6 shadow-lg">
+                      <div className="flex items-center justify-between border-b border-line pb-3">
+                        <div className="flex items-center space-x-2 text-accent-ink font-bold text-sm">
+                          <Film className="w-4 h-4 text-accent-ink" />
                           <span>Roteiro de Gravidade para Vídeo Curto (~60 Segundos)</span>
                         </div>
                         <button
@@ -1473,16 +1518,16 @@ export const ArticleResultView: React.FC<ArticleResultViewProps> = ({
                             const scriptText = `[GANCHO INICIAL (0-3s)]\n"${derivedFormats.reelsScript!.hook}"\n\n[FALA PRINCIPAL]\n${derivedFormats.reelsScript!.coreNarrative}\n\n[ORIENTAÇÕES VISUAIS]\n${derivedFormats.reelsScript!.visualInstructions || ''}\n\n[CHAMADA REFLEXIVA]\n"${derivedFormats.reelsScript!.callToReflection}"`;
                             handleCopyText(scriptText, 'reels_full_script');
                           }}
-                          className="px-3.5 py-1.5 bg-amber-500 hover:bg-amber-600 text-stone-950 font-bold text-xs rounded-xl flex items-center space-x-1.5 transition-all cursor-pointer shadow-sm"
+                          className="px-3.5 py-1.5 bg-accent hover:bg-accent text-ink font-bold text-xs rounded-control flex items-center space-x-1.5 transition-all cursor-pointer shadow-sm"
                         >
-                          {copiedField === 'reels_full_script' ? <Check className="w-3.5 h-3.5 text-stone-950" /> : <Copy className="w-3.5 h-3.5" />}
+                          {copiedField === 'reels_full_script' ? <Check className="w-3.5 h-3.5 text-ink" /> : <Copy className="w-3.5 h-3.5" />}
                           <span>{copiedField === 'reels_full_script' ? 'Roteiro Copiado!' : 'Copiar Roteiro de Vídeo'}</span>
                         </button>
                       </div>
 
                       {/* Hook */}
-                      <div className="bg-amber-950/50 border border-amber-500/40 p-4 rounded-2xl space-y-1">
-                        <span className="text-[10px] font-bold text-amber-400 uppercase tracking-widest block">
+                      <div className="bg-accent/50 border border-accent/40/40 p-4 rounded-panel space-y-1">
+                        <span className="text-[10px] font-bold text-accent-ink uppercase tracking-widest block">
                           🎯 Gancho Inicial (0 a 3 Segundos):
                         </span>
                         <p className="text-sm font-serif font-bold text-amber-100 leading-snug">
@@ -1492,10 +1537,10 @@ export const ArticleResultView: React.FC<ArticleResultViewProps> = ({
 
                       {/* Core Narrative */}
                       <div className="space-y-2">
-                        <span className="text-[10px] font-bold text-stone-400 uppercase tracking-widest block">
+                        <span className="text-[10px] font-bold text-ink-faint uppercase tracking-widest block">
                           🎙️ Fala Principal do Psicólogo (Prosa Ensaística Contínua):
                         </span>
-                        <p className="p-4 bg-stone-800/80 rounded-2xl text-xs sm:text-sm text-stone-200 leading-relaxed font-sans whitespace-pre-wrap border border-stone-700">
+                        <p className="p-4 bg-surface-raised/80 rounded-panel text-xs sm:text-sm text-ink leading-relaxed font-sans whitespace-pre-wrap border border-line">
                           {derivedFormats.reelsScript.coreNarrative}
                         </p>
                       </div>
@@ -1503,21 +1548,21 @@ export const ArticleResultView: React.FC<ArticleResultViewProps> = ({
                       {/* Visual & Posture Instructions */}
                       {derivedFormats.reelsScript.visualInstructions && (
                         <div className="space-y-1">
-                          <span className="text-[10px] font-bold text-stone-400 uppercase tracking-widest block">
+                          <span className="text-[10px] font-bold text-ink-faint uppercase tracking-widest block">
                             🎥 Dicas de Enquadramento, Postura & Iluminação:
                           </span>
-                          <p className="text-xs text-stone-300 italic font-sans">
+                          <p className="text-xs text-ink-muted italic font-sans">
                             {derivedFormats.reelsScript.visualInstructions}
                           </p>
                         </div>
                       )}
 
                       {/* Call to Reflection */}
-                      <div className="bg-stone-800/60 p-4 rounded-2xl border border-stone-700 space-y-1">
-                        <span className="text-[10px] font-bold text-teal-300 uppercase tracking-widest block">
+                      <div className="bg-surface-raised/60 p-4 rounded-panel border border-line space-y-1">
+                        <span className="text-[10px] font-bold text-accent-ink uppercase tracking-widest block">
                           💬 Chamada Reflexiva para Comentários:
                         </span>
-                        <p className="text-xs text-stone-200 font-serif italic">
+                        <p className="text-xs text-ink font-serif italic">
                           "{derivedFormats.reelsScript.callToReflection}"
                         </p>
                       </div>
@@ -1534,23 +1579,23 @@ export const ArticleResultView: React.FC<ArticleResultViewProps> = ({
       {/* TAB 3: SOCIAL MEDIA & SEO */}
       {activeTab === 'social' && post.review && (
         <div className="space-y-6">
-          <div className="bg-white rounded-2xl p-6 border border-stone-200 shadow-sm space-y-3">
+          <div className="bg-surface rounded-panel p-6 border border-line shadow-sm space-y-3">
             <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-2 text-stone-900 font-bold text-base">
-                <MessageSquare className="w-5 h-5 text-indigo-600" />
+              <div className="flex items-center space-x-2 text-ink font-bold text-base">
+                <MessageSquare className="w-5 h-5 text-accent-ink" />
                 <h3>Legenda Pronta para Redes Sociais (Instagram / LinkedIn)</h3>
               </div>
 
               <button
                 onClick={() => handleCopyText(post.review?.socialCaption || '', 'social_caption')}
-                className="px-3 py-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-800 text-xs font-semibold rounded-lg flex items-center space-x-1 cursor-pointer"
+                className="px-3 py-1.5 bg-accent-soft hover:bg-accent-soft text-accent-ink text-xs font-semibold rounded-control flex items-center space-x-1 cursor-pointer"
               >
-                {copiedField === 'social_caption' ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
+                {copiedField === 'social_caption' ? <Check className="w-3.5 h-3.5 text-accent-ink" /> : <Copy className="w-3.5 h-3.5" />}
                 <span>{copiedField === 'social_caption' ? 'Copiado!' : 'Copiar Legenda'}</span>
               </button>
             </div>
 
-            <p className="p-4 bg-stone-50 border border-stone-200 rounded-xl text-xs sm:text-sm text-stone-800 whitespace-pre-wrap font-sans leading-relaxed">
+            <p className="p-4 bg-surface-sunken border border-line rounded-control text-xs sm:text-sm text-ink whitespace-pre-wrap font-sans leading-relaxed">
               {post.review.socialCaption}
             </p>
 
@@ -1558,7 +1603,7 @@ export const ArticleResultView: React.FC<ArticleResultViewProps> = ({
             {post.review.hashtags?.length > 0 && (
               <div className="pt-2 flex flex-wrap gap-1.5">
                 {post.review.hashtags.map((tag, idx) => (
-                  <span key={idx} className="bg-stone-100 text-stone-700 text-xs px-2.5 py-1 rounded-md font-mono">
+                  <span key={idx} className="bg-surface-raised text-ink-muted text-xs px-2.5 py-1 rounded-md font-mono">
                     #{tag.replace(/^#/, '')}
                   </span>
                 ))}
@@ -1567,23 +1612,23 @@ export const ArticleResultView: React.FC<ArticleResultViewProps> = ({
           </div>
 
           {/* Meta Description / SEO */}
-          <div className="bg-white rounded-2xl p-6 border border-stone-200 shadow-sm space-y-3">
+          <div className="bg-surface rounded-panel p-6 border border-line shadow-sm space-y-3">
             <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-2 text-stone-900 font-bold text-base">
-                <Share2 className="w-5 h-5 text-amber-600" />
+              <div className="flex items-center space-x-2 text-ink font-bold text-base">
+                <Share2 className="w-5 h-5 text-accent-ink" />
                 <h3>Meta Descrição para SEO / Google Blog</h3>
               </div>
 
               <button
                 onClick={() => handleCopyText(post.review?.metaDescription || '', 'meta_desc')}
-                className="px-3 py-1.5 bg-stone-100 hover:bg-stone-200 text-stone-800 text-xs font-semibold rounded-lg flex items-center space-x-1 cursor-pointer"
+                className="px-3 py-1.5 bg-surface-raised hover:bg-surface-raised text-ink text-xs font-semibold rounded-control flex items-center space-x-1 cursor-pointer"
               >
-                {copiedField === 'meta_desc' ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
+                {copiedField === 'meta_desc' ? <Check className="w-3.5 h-3.5 text-accent-ink" /> : <Copy className="w-3.5 h-3.5" />}
                 <span>{copiedField === 'meta_desc' ? 'Copiado!' : 'Copiar Meta'}</span>
               </button>
             </div>
 
-            <p className="p-3 bg-stone-50 border border-stone-200 rounded-xl text-xs text-stone-700 font-sans">
+            <p className="p-3 bg-surface-sunken border border-line rounded-control text-xs text-ink-muted font-sans">
               {post.review.metaDescription}
             </p>
           </div>
@@ -1592,27 +1637,27 @@ export const ArticleResultView: React.FC<ArticleResultViewProps> = ({
 
       {/* TAB 4: MARKDOWN CODE & DIRECT EDITOR */}
       {activeTab === 'markdown' && (
-        <div className="bg-white rounded-2xl p-6 border border-stone-200 shadow-sm space-y-4">
+        <div className="bg-surface rounded-panel p-6 border border-line shadow-sm space-y-4">
           <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-2 text-stone-900 font-bold text-base">
-              <FileText className="w-5 h-5 text-amber-600" />
+            <div className="flex items-center space-x-2 text-ink font-bold text-base">
+              <FileText className="w-5 h-5 text-accent-ink" />
               <h3>Código Markdown Completo do Artigo</h3>
             </div>
 
             <div className="flex items-center space-x-2">
               <button
                 onClick={() => setIsEditingText(!isEditingText)}
-                className="px-3 py-1.5 bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-200 text-xs font-semibold rounded-lg flex items-center space-x-1 cursor-pointer"
+                className="px-3 py-1.5 bg-accent-soft hover:bg-accent-soft text-accent-ink border border-accent/40 text-xs font-semibold rounded-control flex items-center space-x-1 cursor-pointer"
               >
-                <Edit3 className="w-3.5 h-3.5 text-amber-600" />
+                <Edit3 className="w-3.5 h-3.5 text-accent-ink" />
                 <span>{isEditingText ? 'Visualizar Texto' : 'Modo Edição Directa'}</span>
               </button>
 
               <button
                 onClick={() => handleCopyText(editedText || post.review?.revisedText || post.draft?.rawText || '', 'raw_markdown')}
-                className="px-3 py-1.5 bg-stone-100 hover:bg-stone-200 text-stone-800 text-xs font-semibold rounded-lg flex items-center space-x-1 cursor-pointer"
+                className="px-3 py-1.5 bg-surface-raised hover:bg-surface-raised text-ink text-xs font-semibold rounded-control flex items-center space-x-1 cursor-pointer"
               >
-                {copiedField === 'raw_markdown' ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
+                {copiedField === 'raw_markdown' ? <Check className="w-3.5 h-3.5 text-accent-ink" /> : <Copy className="w-3.5 h-3.5" />}
                 <span>{copiedField === 'raw_markdown' ? 'Copiado!' : 'Copiar Markdown'}</span>
               </button>
             </div>
@@ -1621,38 +1666,38 @@ export const ArticleResultView: React.FC<ArticleResultViewProps> = ({
           {isEditingText ? (
             <div className="space-y-4 pt-2">
               <div className="flex items-center justify-between">
-                <span className="text-xs font-bold text-stone-700">Edição direta de texto via teclado</span>
+                <span className="text-xs font-bold text-ink-muted">Edição direta de texto via teclado</span>
                 <button
                   onClick={handleSaveEdits}
-                  className="px-4 py-1.5 bg-teal-800 text-white font-bold text-xs rounded-xl flex items-center space-x-1 shadow-xs cursor-pointer"
+                  className="px-4 py-1.5 bg-accent text-ink font-bold text-xs rounded-control flex items-center space-x-1 shadow-xs cursor-pointer"
                 >
-                  <Save className="w-3.5 h-3.5 text-amber-300" />
+                  <Save className="w-3.5 h-3.5 text-accent-ink" />
                   <span>Salvar Alterações</span>
                 </button>
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-stone-700 mb-1">Título do Artigo</label>
+                <label className="block text-xs font-bold text-ink-muted mb-1">Título do Artigo</label>
                 <input
                   type="text"
                   value={editedTitle}
                   onChange={(e) => setEditedTitle(e.target.value)}
-                  className="w-full p-2.5 border border-stone-300 rounded-xl text-sm font-bold text-stone-900 focus:ring-2 focus:ring-teal-500"
+                  className="w-full p-2.5 border border-line rounded-control text-sm font-bold text-ink focus:ring-2 focus:ring-accent"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-stone-700 mb-1">Corpo do Texto (Markdown)</label>
+                <label className="block text-xs font-bold text-ink-muted mb-1">Corpo do Texto (Markdown)</label>
                 <textarea
                   rows={16}
                   value={editedText}
                   onChange={(e) => setEditedText(e.target.value)}
-                  className="w-full p-4 border border-stone-300 rounded-xl font-mono text-xs text-stone-800 focus:ring-2 focus:ring-teal-500"
+                  className="w-full p-4 border border-line rounded-control font-mono text-xs text-ink focus:ring-2 focus:ring-accent"
                 />
               </div>
             </div>
           ) : (
-            <pre className="p-4 bg-stone-900 text-stone-100 rounded-xl font-mono text-xs overflow-x-auto whitespace-pre-wrap max-h-[500px]">
+            <pre className="p-4 bg-surface text-ink rounded-control font-mono text-xs overflow-x-auto whitespace-pre-wrap max-h-[500px]">
               {displayedText}
             </pre>
           )}
@@ -1662,88 +1707,88 @@ export const ArticleResultView: React.FC<ArticleResultViewProps> = ({
       {/* TAB 5: CLINICAL & MULTIDISCIPLINARY REVIEW NOTES */}
       {activeTab === 'review' && post.review && (
         <div className="space-y-6">
-          <div className="bg-white rounded-2xl p-6 border border-stone-200 shadow-sm space-y-6">
-            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 border-b border-stone-100 pb-4">
-              <div className="flex items-center space-x-2 text-emerald-900 font-bold text-base">
-                <ShieldCheck className="w-5 h-5 text-emerald-600" />
+          <div className="bg-surface rounded-panel p-6 border border-line shadow-sm space-y-6">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 border-b border-line pb-4">
+              <div className="flex items-center space-x-2 text-accent-ink font-bold text-base">
+                <ShieldCheck className="w-5 h-5 text-accent-ink" />
                 <h3>Pareceres da Equipe Editorial & Síntese Coesa do Redator</h3>
               </div>
-              <span className="bg-amber-100 text-amber-950 text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-wider border border-amber-300">
+              <span className="bg-accent-soft text-accent-ink text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-wider border border-accent/40">
                 5 Agentes em Ação
               </span>
             </div>
 
             {/* Ethics check status badge */}
-            <div className="flex items-center space-x-3 p-3.5 bg-emerald-50 border border-emerald-200 rounded-xl">
-              <Check className="w-5 h-5 text-emerald-600 shrink-0" />
-              <div className="text-xs text-emerald-900">
+            <div className="flex items-center space-x-3 p-3.5 bg-accent-soft border border-accent/40 rounded-control">
+              <Check className="w-5 h-5 text-accent-ink shrink-0" />
+              <div className="text-xs text-accent-ink">
                 <span className="font-bold">Filtro Ético & Prática Clínica Aprovados</span>
-                <p className="text-emerald-800 mt-0.5">{post.review.ethicsDetails}</p>
+                <p className="text-accent-ink mt-0.5">{post.review.ethicsDetails}</p>
               </div>
             </div>
 
             {/* Grid of Specialist Reports */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {/* Report 1: Editor de Humanização */}
-              <div className="bg-cyan-50/50 border border-cyan-200 rounded-2xl p-4 space-y-2">
+              <div className="bg-cyan-50/50 border border-cyan-200 rounded-panel p-4 space-y-2">
                 <div className="flex items-center space-x-2 text-cyan-950 font-bold text-xs sm:text-sm">
                   <Wand2 className="w-4 h-4 text-cyan-700 shrink-0" />
                   <span>Editor de Humanização (O "Des-AIzador")</span>
                 </div>
-                <p className="text-xs text-stone-800 leading-relaxed font-sans">
+                <p className="text-xs text-ink leading-relaxed font-sans">
                   {post.review.humanizationNotes || 'Auditoria de ritmo e remoção de conectores mecânicos de IA realizada.'}
                 </p>
               </div>
 
               {/* Report 2: Curador Conceitual */}
-              <div className="bg-amber-50/50 border border-amber-200 rounded-2xl p-4 space-y-2">
-                <div className="flex items-center space-x-2 text-amber-950 font-bold text-xs sm:text-sm">
-                  <BookOpen className="w-4 h-4 text-amber-700 shrink-0" />
+              <div className="bg-accent-soft/50 border border-accent/40 rounded-panel p-4 space-y-2">
+                <div className="flex items-center space-x-2 text-accent-ink font-bold text-xs sm:text-sm">
+                  <BookOpen className="w-4 h-4 text-accent-ink shrink-0" />
                   <span>Curador Conceitual (O "Guardião da Teoria")</span>
                 </div>
-                <p className="text-xs text-stone-800 leading-relaxed font-sans">
+                <p className="text-xs text-ink leading-relaxed font-sans">
                   {post.review.conceptualNotes || 'Alinhamento com a visão de mundo e conceitos filosóficos/existenciais validado.'}
                 </p>
               </div>
 
               {/* Report 3: Revisor Clínico */}
-              <div className="bg-indigo-50/50 border border-indigo-200 rounded-2xl p-4 space-y-2">
-                <div className="flex items-center space-x-2 text-indigo-950 font-bold text-xs sm:text-sm">
-                  <ShieldCheck className="w-4 h-4 text-indigo-700 shrink-0" />
+              <div className="bg-accent-soft/50 border border-accent/40 rounded-panel p-4 space-y-2">
+                <div className="flex items-center space-x-2 text-accent-ink font-bold text-xs sm:text-sm">
+                  <ShieldCheck className="w-4 h-4 text-accent-ink shrink-0" />
                   <span>Revisor Clínico & Ético</span>
                 </div>
-                <p className="text-xs text-stone-800 leading-relaxed font-sans">
+                <p className="text-xs text-ink leading-relaxed font-sans">
                   {post.review.clinicalNotes}
                 </p>
               </div>
 
               {/* Report 4: Redator Principal - Síntese Unificada */}
-              <div className="bg-teal-50/80 border border-teal-300 rounded-2xl p-4 space-y-2 md:col-span-2">
-                <div className="flex items-center space-x-2 text-teal-950 font-bold text-xs sm:text-sm">
-                  <Feather className="w-4 h-4 text-teal-800 shrink-0" />
+              <div className="bg-accent-soft/80 border border-accent/40 rounded-panel p-4 space-y-2 md:col-span-2">
+                <div className="flex items-center space-x-2 text-accent-ink font-bold text-xs sm:text-sm">
+                  <Feather className="w-4 h-4 text-accent-ink shrink-0" />
                   <span>Redator Principal — Síntese Integrada & Reescrita Unificada (Garantia Anti-Colcha de Retalhos)</span>
                 </div>
-                <p className="text-xs text-stone-800 leading-relaxed font-sans">
+                <p className="text-xs text-ink leading-relaxed font-sans">
                   {post.review.writerSynthesisNotes || 'O Redator Principal absorveu as orientações dos 3 especialistas e reescreveu o texto na íntegra para garantir uma prosa contínua, orgânica e fluida.'}
                 </p>
               </div>
             </div>
 
             {/* Re-Review Form Section */}
-            <div className="bg-gradient-to-br from-amber-50/70 to-teal-50/50 border border-amber-200/80 rounded-2xl p-5 space-y-4">
+            <div className="bg-surface-raised border border-accent/40/80 rounded-panel p-5 space-y-4">
               <div className="space-y-1">
-                <div className="flex items-center space-x-2 text-amber-900 font-bold text-sm">
-                  <Sparkles className="w-4 h-4 text-amber-600" />
+                <div className="flex items-center space-x-2 text-accent-ink font-bold text-sm">
+                  <Sparkles className="w-4 h-4 text-accent-ink" />
                   <span>Exigir Nova Revisão com Filtro Anti-Genérico Ainda Mais Severo</span>
                 </div>
-                <p className="text-xs text-stone-600">
+                <p className="text-xs text-ink-muted">
                   Se achou o texto atual genérico ou clichê, o Revisor fará um pente-fino implacável, expurgando frases prontas, eliminando "você" e aprofundando o caráter ensaístico e autoral.
                 </p>
               </div>
 
               {reReviewError && (
-                <div className="bg-rose-50 border border-rose-200 text-rose-800 text-xs p-3 rounded-xl flex items-center space-x-2">
-                  <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
+                <div className="bg-danger-soft border border-danger/40 text-danger-ink text-xs p-3 rounded-control flex items-center space-x-2">
+                  <AlertCircle className="w-4 h-4 text-danger-ink shrink-0" />
                   <span>{reReviewError}</span>
                 </div>
               )}
@@ -1754,7 +1799,7 @@ export const ArticleResultView: React.FC<ArticleResultViewProps> = ({
                   placeholder="Ex: Torne o tom ainda mais crítico em relação à cobrança de produtividade. Elimine introduções comuns."
                   value={reReviewInstruction}
                   onChange={(e) => setReReviewInstruction(e.target.value)}
-                  className="w-full px-3.5 py-2.5 bg-white border border-stone-300 rounded-xl text-xs text-stone-900 placeholder:text-stone-400 focus:ring-2 focus:ring-amber-500"
+                  className="w-full px-3.5 py-2.5 bg-surface border border-line rounded-control text-xs text-ink placeholder:text-ink-faint focus:ring-2 focus:ring-accent"
                 />
 
                 <div className="flex justify-end">
@@ -1762,7 +1807,7 @@ export const ArticleResultView: React.FC<ArticleResultViewProps> = ({
                     type="button"
                     onClick={handleReReview}
                     disabled={isReReviewing}
-                    className="px-4 py-2.5 bg-amber-700 hover:bg-amber-800 text-white font-bold text-xs rounded-xl shadow-xs flex items-center space-x-2 transition-all disabled:opacity-50 cursor-pointer"
+                    className="px-4 py-2.5 bg-accent hover:bg-accent text-ink font-bold text-xs rounded-control shadow-xs flex items-center space-x-2 transition-all disabled:opacity-50 cursor-pointer"
                   >
                     {isReReviewing ? (
                       <>
@@ -1771,7 +1816,7 @@ export const ArticleResultView: React.FC<ArticleResultViewProps> = ({
                       </>
                     ) : (
                       <>
-                        <Compass className="w-4 h-4 text-amber-200" />
+                        <Compass className="w-4 h-4 text-accent-ink" />
                         <span>Submeter a Nova Revisão Crítica</span>
                       </>
                     )}
@@ -1787,32 +1832,32 @@ export const ArticleResultView: React.FC<ArticleResultViewProps> = ({
       {/* TAB 6: EXPORT TO REACT BLOG */}
       {activeTab === 'reactexport' && (
         <div className="space-y-6">
-          <div className="bg-white rounded-3xl p-6 sm:p-8 border border-stone-200 shadow-sm space-y-6">
-            <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 border-b border-stone-100 pb-4">
+          <div className="bg-surface rounded-panel p-6 sm:p-8 border border-line shadow-sm space-y-6">
+            <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 border-b border-line pb-4">
               <div>
                 <div className="flex items-center space-x-2 text-cyan-950 font-bold text-lg">
                   <Code className="w-5 h-5 text-cyan-600 shrink-0" />
                   <h2>Exportação Direta para Blog React</h2>
                 </div>
-                <p className="text-xs text-stone-600 mt-1">
+                <p className="text-xs text-ink-muted mt-1">
                   Obtenha o código exato formatado para incorporar este artigo no seu site React, Next.js, Vite ou CMS Headless.
                 </p>
               </div>
 
-              <span className="bg-cyan-50 border border-cyan-200 text-cyan-900 text-xs font-semibold px-3 py-1.5 rounded-xl flex items-center space-x-1.5">
+              <span className="bg-cyan-50 border border-cyan-200 text-cyan-900 text-xs font-semibold px-3 py-1.5 rounded-control flex items-center space-x-1.5">
                 <Globe className="w-3.5 h-3.5 text-cyan-600" />
                 <span>Compatível com React 18 / Next.js / Tailwind</span>
               </span>
             </div>
 
             {/* Format Selection Bar */}
-            <div className="flex flex-wrap items-center gap-2 bg-stone-100 p-1.5 rounded-2xl">
+            <div className="flex flex-wrap items-center gap-2 bg-surface-raised p-1.5 rounded-panel">
               <button
                 onClick={() => setReactExportFormat('tsx')}
-                className={`flex-1 sm:flex-none px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center justify-center space-x-1.5 cursor-pointer ${
+                className={`flex-1 sm:flex-none px-4 py-2 rounded-control text-xs font-bold transition-all flex items-center justify-center space-x-1.5 cursor-pointer ${
                   reactExportFormat === 'tsx'
-                    ? 'bg-stone-900 text-white shadow-sm'
-                    : 'text-stone-700 hover:text-stone-900 hover:bg-stone-200/60'
+                    ? 'bg-surface text-ink shadow-sm'
+                    : 'text-ink-muted hover:text-ink hover:bg-surface-raised/60'
                 }`}
               >
                 <FileCode className="w-4 h-4 text-cyan-400" />
@@ -1821,37 +1866,37 @@ export const ArticleResultView: React.FC<ArticleResultViewProps> = ({
 
               <button
                 onClick={() => setReactExportFormat('json')}
-                className={`flex-1 sm:flex-none px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center justify-center space-x-1.5 cursor-pointer ${
+                className={`flex-1 sm:flex-none px-4 py-2 rounded-control text-xs font-bold transition-all flex items-center justify-center space-x-1.5 cursor-pointer ${
                   reactExportFormat === 'json'
-                    ? 'bg-stone-900 text-white shadow-sm'
-                    : 'text-stone-700 hover:text-stone-900 hover:bg-stone-200/60'
+                    ? 'bg-surface text-ink shadow-sm'
+                    : 'text-ink-muted hover:text-ink hover:bg-surface-raised/60'
                 }`}
               >
-                <Braces className="w-4 h-4 text-amber-400" />
+                <Braces className="w-4 h-4 text-accent-ink" />
                 <span>Payload JSON (CMS / API)</span>
               </button>
 
               <button
                 onClick={() => setReactExportFormat('mdx')}
-                className={`flex-1 sm:flex-none px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center justify-center space-x-1.5 cursor-pointer ${
+                className={`flex-1 sm:flex-none px-4 py-2 rounded-control text-xs font-bold transition-all flex items-center justify-center space-x-1.5 cursor-pointer ${
                   reactExportFormat === 'mdx'
-                    ? 'bg-stone-900 text-white shadow-sm'
-                    : 'text-stone-700 hover:text-stone-900 hover:bg-stone-200/60'
+                    ? 'bg-surface text-ink shadow-sm'
+                    : 'text-ink-muted hover:text-ink hover:bg-surface-raised/60'
                 }`}
               >
-                <FileText className="w-4 h-4 text-emerald-400" />
+                <FileText className="w-4 h-4 text-accent-ink" />
                 <span>MDX com Frontmatter</span>
               </button>
 
               <button
                 onClick={() => setReactExportFormat('html')}
-                className={`flex-1 sm:flex-none px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center justify-center space-x-1.5 cursor-pointer ${
+                className={`flex-1 sm:flex-none px-4 py-2 rounded-control text-xs font-bold transition-all flex items-center justify-center space-x-1.5 cursor-pointer ${
                   reactExportFormat === 'html'
-                    ? 'bg-stone-900 text-white shadow-sm'
-                    : 'text-stone-700 hover:text-stone-900 hover:bg-stone-200/60'
+                    ? 'bg-surface text-ink shadow-sm'
+                    : 'text-ink-muted hover:text-ink hover:bg-surface-raised/60'
                 }`}
               >
-                <Code className="w-4 h-4 text-indigo-400" />
+                <Code className="w-4 h-4 text-accent-ink" />
                 <span>HTML Semântico</span>
               </button>
             </div>
@@ -1887,25 +1932,25 @@ export const ArticlePostComponent: React.FC<ArticleProps> = ({
   tags = ${JSON.stringify(post.tags || post.review?.suggestedTags || ['Psicologia', 'Ensaio'])},
 }) => {
   return (
-    <article className="max-w-3xl mx-auto px-4 py-8 font-sans text-stone-800">
+    <article className="max-w-3xl mx-auto px-4 py-8 font-sans text-ink">
       <header className="space-y-4 mb-8">
         <div className="flex flex-wrap gap-2">
           {tags.map((tag, idx) => (
-            <span key={idx} className="bg-stone-100 text-stone-700 text-xs px-2.5 py-1 rounded-full font-medium">
+            <span key={idx} className="bg-surface-raised text-ink-muted text-xs px-2.5 py-1 rounded-full font-medium">
               #{tag}
             </span>
           ))}
         </div>
-        <h1 className="font-serif font-bold text-3xl sm:text-4xl text-stone-900 leading-tight">
+        <h1 className="font-serif font-bold text-3xl sm:text-4xl text-ink leading-tight">
           {title}
         </h1>
         {subtitle && (
-          <p className="text-lg text-stone-600 font-serif italic leading-relaxed">
+          <p className="text-lg text-ink-muted font-serif italic leading-relaxed">
             {subtitle}
           </p>
         )}
-        <div className="flex items-center space-x-3 text-xs text-stone-500 border-y border-stone-100 py-3">
-          <span className="font-semibold text-stone-800">{authorName}</span>
+        <div className="flex items-center space-x-3 text-xs text-ink-faint border-y border-line py-3">
+          <span className="font-semibold text-ink">{authorName}</span>
           <span>•</span>
           <span>{publishedAt}</span>
           <span>•</span>
@@ -1914,7 +1959,7 @@ export const ArticlePostComponent: React.FC<ArticleProps> = ({
       </header>
 
       {coverImageUrl && (
-        <figure className="mb-10 rounded-2xl overflow-hidden shadow-sm">
+        <figure className="mb-10 rounded-panel overflow-hidden shadow-sm">
           <img
             src={coverImageUrl}
             alt={title}
@@ -1928,20 +1973,20 @@ export const ArticlePostComponent: React.FC<ArticleProps> = ({
 ${displayedText
   .split('\n\n')
   .map((p) => {
-    if (p.startsWith('## ')) return `        <h2 className="font-serif font-bold text-2xl text-stone-900 mt-8 mb-4">${p.replace('## ', '')}</h2>`;
-    if (p.startsWith('### ')) return `        <h3 className="font-serif font-bold text-xl text-stone-800 mt-6 mb-3">${p.replace('### ', '')}</h3>`;
-    if (p.startsWith('> ')) return `        <blockquote className="my-6 p-4 border-l-4 border-amber-600 bg-amber-50/60 font-serif italic text-stone-800">\n          <p>"${p.replace(/^>\s*/, '')}"</p>\n        </blockquote>`;
+    if (p.startsWith('## ')) return `        <h2 className="font-serif font-bold text-2xl text-ink mt-8 mb-4">${p.replace('## ', '')}</h2>`;
+    if (p.startsWith('### ')) return `        <h3 className="font-serif font-bold text-xl text-ink mt-6 mb-3">${p.replace('### ', '')}</h3>`;
+    if (p.startsWith('> ')) return `        <blockquote className="my-6 p-4 border-l-4 border-accent/40 bg-accent-soft/60 font-serif italic text-ink">\n          <p>"${p.replace(/^>\s*/, '')}"</p>\n        </blockquote>`;
     return `        <p>${p}</p>`;
   })
   .join('\n\n')}
       </div>
 
-      <footer className="mt-12 pt-8 border-t border-stone-200">
-        <div className="bg-stone-900 text-stone-100 rounded-2xl p-6 space-y-4">
-          <h4 className="font-serif font-bold text-lg text-amber-300">
+      <footer className="mt-12 pt-8 border-t border-line">
+        <div className="bg-surface text-ink rounded-panel p-6 space-y-4">
+          <h4 className="font-serif font-bold text-lg text-accent-ink">
             Perguntas para Reflexão Psicoterapêutica
           </h4>
-          <ol className="list-decimal pl-5 space-y-2 text-sm text-stone-200">
+          <ol className="list-decimal pl-5 space-y-2 text-sm text-ink">
             <li>Como este tema se conecta com situações do seu momento atual?</li>
             <li>O que você percebe em seu corpo ao refletir sobre este ensaio?</li>
             <li>O que mudaria em sua rotina se acolhesse esses sentimentos sem pressa?</li>
@@ -2036,10 +2081,10 @@ ${displayedText}
 
               return (
                 <div className="space-y-4">
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 bg-stone-900 text-stone-100 p-4 rounded-t-2xl">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 bg-surface text-ink p-4 rounded-t-2xl">
                     <div>
                       <h3 className="font-bold text-sm text-cyan-300">{formatTitle}</h3>
-                      <p className="text-xs text-stone-400 mt-0.5">{formatDescription}</p>
+                      <p className="text-xs text-ink-faint mt-0.5">{formatDescription}</p>
                     </div>
 
                     <button
@@ -2049,12 +2094,12 @@ ${displayedText}
                           addToast('success', 'Código do artigo copiado!', `O código no formato ${reactExportFormat.toUpperCase()} está na sua área de transferência.`);
                         }
                       }}
-                      className="px-4 py-2 bg-cyan-500 hover:bg-cyan-600 text-stone-950 font-bold text-xs rounded-xl flex items-center space-x-1.5 transition-all shadow-md cursor-pointer shrink-0"
+                      className="px-4 py-2 bg-cyan-500 hover:bg-cyan-600 text-ink font-bold text-xs rounded-control flex items-center space-x-1.5 transition-all shadow-md cursor-pointer shrink-0"
                     >
                       {copiedField === `react_export_${reactExportFormat}` ? (
-                        <Check className="w-4 h-4 text-stone-950" />
+                        <Check className="w-4 h-4 text-ink" />
                       ) : (
-                        <Copy className="w-4 h-4 text-stone-950" />
+                        <Copy className="w-4 h-4 text-ink" />
                       )}
                       <span>
                         {copiedField === `react_export_${reactExportFormat}`
@@ -2065,7 +2110,7 @@ ${displayedText}
                   </div>
 
                   <div className="relative">
-                    <pre className="p-5 bg-stone-950 text-stone-200 rounded-b-2xl font-mono text-xs overflow-x-auto whitespace-pre-wrap max-h-[550px] border border-stone-800 leading-relaxed selection:bg-cyan-900">
+                    <pre className="p-5 bg-canvas text-ink rounded-b-2xl font-mono text-xs overflow-x-auto whitespace-pre-wrap max-h-[550px] border border-line leading-relaxed selection:bg-cyan-900">
                       {codeText}
                     </pre>
                   </div>
@@ -2074,26 +2119,26 @@ ${displayedText}
             })()}
 
             {/* Quick React Integration Instructions */}
-            <div className="bg-cyan-950/20 border border-cyan-800/30 rounded-2xl p-5 text-xs text-stone-700 space-y-3">
-              <div className="flex items-center space-x-2 font-bold text-stone-900 text-sm">
+            <div className="bg-cyan-950/20 border border-cyan-800/30 rounded-panel p-5 text-xs text-ink-muted space-y-3">
+              <div className="flex items-center space-x-2 font-bold text-ink text-sm">
                 <Sparkles className="w-4 h-4 text-cyan-600" />
                 <span>Como usar no seu Blog em React:</span>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-stone-600">
-                <div className="bg-white p-3.5 rounded-xl border border-stone-200 space-y-1">
-                  <span className="font-bold text-stone-900 block">1. Imagem de Capa</span>
-                  <p>A tag de imagem inclui <code className="bg-stone-100 text-stone-800 px-1 rounded">referrerPolicy="no-referrer"</code> para garantir a exibição perfeita da capa gerada por IA.</p>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-ink-muted">
+                <div className="bg-surface p-3.5 rounded-control border border-line space-y-1">
+                  <span className="font-bold text-ink block">1. Imagem de Capa</span>
+                  <p>A tag de imagem inclui <code className="bg-surface-raised text-ink px-1 rounded">referrerPolicy="no-referrer"</code> para garantir a exibição perfeita da capa gerada por IA.</p>
                 </div>
 
-                <div className="bg-white p-3.5 rounded-xl border border-stone-200 space-y-1">
-                  <span className="font-bold text-stone-900 block">2. Estilos com Tailwind</span>
+                <div className="bg-surface p-3.5 rounded-control border border-line space-y-1">
+                  <span className="font-bold text-ink block">2. Estilos com Tailwind</span>
                   <p>As classes do Tailwind CSS já estão otimizadas para telas pequenas, médias e desktop, usando a fonte serifada nos títulos.</p>
                 </div>
 
-                <div className="bg-white p-3.5 rounded-xl border border-stone-200 space-y-1">
-                  <span className="font-bold text-stone-900 block">3. SEO & Redes Sociais</span>
-                  <p>Copie a meta descrição gerada na aba 'Legendas & SEO' para colocar no <code className="bg-stone-100 text-stone-800 px-1 rounded">&lt;head&gt;</code> do seu blog.</p>
+                <div className="bg-surface p-3.5 rounded-control border border-line space-y-1">
+                  <span className="font-bold text-ink block">3. SEO & Redes Sociais</span>
+                  <p>Copie a meta descrição gerada na aba 'Legendas & SEO' para colocar no <code className="bg-surface-raised text-ink px-1 rounded">&lt;head&gt;</code> do seu blog.</p>
                 </div>
               </div>
             </div>

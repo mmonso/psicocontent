@@ -2,26 +2,16 @@ import React, { useState } from 'react';
 import { PostGenerationInput, UserManifesto } from '../types';
 import { VISUAL_STYLES } from '../data/presetApproaches';
 import { TopicGenerator } from './TopicGenerator';
-import {
-  Brain,
-  Sparkles,
-  Sliders,
-  CheckCircle2,
-  ChevronDown,
-  ChevronUp,
-  Wand2,
-  Lightbulb,
-  Palette,
-  Heart,
-  ArrowUpRight,
-  Compass,
-} from 'lucide-react';
+import { ChevronDown, Check, Sparkles, ArrowUpRight } from 'lucide-react';
+import { Card, Button, Field, SectionHeader, controlClass, cx } from './ui';
 
 interface CreatePostTabProps {
   manifesto: UserManifesto;
   onSubmitInput: (input: PostGenerationInput) => void;
   onOpenManifestoEditor: () => void;
   isLoading: boolean;
+  /* Preenche o formulário de volta quando uma produção anterior falhou. */
+  initialInput?: PostGenerationInput | null;
 }
 
 const QUICK_TOPICS = [
@@ -33,33 +23,102 @@ const QUICK_TOPICS = [
   'O sintoma como adaptação: compreender a experiência antes de enquadrá-la',
 ];
 
+const DEPTH_LEVELS = [
+  { id: 'iniciante', label: 'Iniciante', desc: 'Didático' },
+  { id: 'intermediario', label: 'Intermediário', desc: 'Equilibrado' },
+  { id: 'aprofundado', label: 'Aprofundado', desc: 'Denso' },
+] as const;
+
+const LENGTHS = [
+  { id: 'curto', label: 'Curto', desc: '~600 palavras' },
+  { id: 'medio', label: 'Médio', desc: '~1000 palavras' },
+  { id: 'longo', label: 'Longo', desc: '~1500 palavras' },
+] as const;
+
+const TOPIC_MAX = 1200;
+
+/* Grupo de opções segmentado. Nível e tamanho repetiam o mesmo markup, com
+   pequenas divergências de classe entre eles. */
+function OptionGroup<T extends string>({
+  options,
+  value,
+  onChange,
+  ariaLabel,
+}: {
+  options: ReadonlyArray<{ id: T; label: string; desc: string }>;
+  value: T;
+  onChange: (id: T) => void;
+  ariaLabel: string;
+}) {
+  return (
+    <div role="radiogroup" aria-label={ariaLabel} className="grid grid-cols-3 gap-2">
+      {options.map((opt) => {
+        const active = opt.id === value;
+        return (
+          <button
+            key={opt.id}
+            type="button"
+            role="radio"
+            aria-checked={active}
+            onClick={() => onChange(opt.id)}
+            className={cx(
+              'px-2 py-2.5 rounded-control border text-center transition-colors cursor-pointer',
+              active
+                ? 'border-accent bg-accent-soft text-accent-ink'
+                : 'border-line bg-surface-sunken text-ink-muted hover:border-line-strong hover:text-ink'
+            )}
+          >
+            <span className="block text-xs font-medium">{opt.label}</span>
+            <span className="block text-[10px] text-ink-faint mt-0.5">{opt.desc}</span>
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
 export const CreatePostTab: React.FC<CreatePostTabProps> = ({
   manifesto,
   onSubmitInput,
   onOpenManifestoEditor,
   isLoading,
+  initialInput,
 }) => {
-  // Main form state
-  const [topic, setTopic] = useState('');
-  const [targetAudience, setTargetAudience] = useState<string>(
-    manifesto.targetAudienceDescription || 'Pessoas em busca de autoconhecimento'
+  const [topic, setTopic] = useState(initialInput?.topic ?? '');
+  const [targetAudience, setTargetAudience] = useState(
+    initialInput?.targetAudience ??
+      manifesto.targetAudienceDescription ??
+      'Pessoas em busca de autoconhecimento'
   );
-  const [depthLevel, setDepthLevel] = useState<'iniciante' | 'intermediario' | 'aprofundado'>('intermediario');
-  const [articleLength, setArticleLength] = useState<'curto' | 'medio' | 'longo'>('medio');
-  const [selectedStyleId, setSelectedStyleId] = useState<string>('minimalist_vector');
+  const [depthLevel, setDepthLevel] = useState<'iniciante' | 'intermediario' | 'aprofundado'>(
+    (initialInput?.depthLevel as any) ?? 'intermediario'
+  );
+  const [articleLength, setArticleLength] = useState<'curto' | 'medio' | 'longo'>(
+    (initialInput?.articleLength as any) ?? 'medio'
+  );
+  const [selectedStyleId, setSelectedStyleId] = useState(
+    initialInput?.visualStyle ?? VISUAL_STYLES[0]?.id ?? 'minimalist_vector'
+  );
 
-  // Custom prompt overrides toggle
-  const [showAdvancedPrompts, setShowAdvancedPrompts] = useState(false);
-  const [showTopicGenerator, setShowTopicGenerator] = useState(true);
-  const [customWriterPrompt, setCustomWriterPrompt] = useState('');
-  const [customReviewerPrompt, setCustomReviewerPrompt] = useState('');
-  const [customImagePrompt, setCustomImagePrompt] = useState('');
+  const [showAdvanced, setShowAdvanced] = useState(false);
+  const [showTopicGenerator, setShowTopicGenerator] = useState(!initialInput);
+  const [customWriterPrompt, setCustomWriterPrompt] = useState(
+    initialInput?.customWriterPrompt ?? ''
+  );
+  const [customReviewerPrompt, setCustomReviewerPrompt] = useState(
+    initialInput?.customReviewerPrompt ?? ''
+  );
+  const [customImagePrompt, setCustomImagePrompt] = useState(
+    initialInput?.customImagePrompt ?? ''
+  );
+
+  const canSubmit = topic.trim().length > 0 && !isLoading;
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!topic.trim() || isLoading) return;
+    if (!canSubmit) return;
 
-    const inputData: PostGenerationInput = {
+    onSubmitInput({
       topic: topic.trim(),
       targetAudience,
       tone: manifesto.toneOfVoice,
@@ -69,336 +128,300 @@ export const CreatePostTab: React.FC<CreatePostTabProps> = ({
       customWriterPrompt: customWriterPrompt.trim() || undefined,
       customReviewerPrompt: customReviewerPrompt.trim() || undefined,
       customImagePrompt: customImagePrompt.trim() || undefined,
-    };
-
-    onSubmitInput(inputData);
+    });
   };
 
   return (
-    <form onSubmit={handleSubmit} className="max-w-4xl mx-auto space-y-8 py-4">
-      
-      {/* ACTIVE MANIFESTO CARD */}
-      <div className="bg-gradient-to-r from-teal-900 via-stone-900 to-teal-950 text-white rounded-3xl p-6 border border-teal-800/40 shadow-md flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-        <div className="min-w-0 space-y-2">
-          <div className="flex items-center space-x-2 text-teal-300 text-xs font-bold uppercase tracking-wider">
-            <Heart className="w-4 h-4 text-rose-400 shrink-0" />
-            <span>Sua Visão de Mundo Ativa</span>
-          </div>
-
-          <div className="space-y-0.5">
-            <h2 className="text-xl font-bold text-white font-serif leading-snug">
-              {manifesto.authorName || 'Sua Assinatura'}
+    <form onSubmit={handleSubmit} className="max-w-3xl mx-auto space-y-6">
+      {/* Visão ativa — resumo, não painel. A configuração completa vive na
+          seção "Minha visão". */}
+      <Card className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="min-w-0 space-y-1.5">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-ink-faint">
+            Escrevendo como
+          </p>
+          <div>
+            <h2 className="font-serif text-lg font-bold text-ink leading-snug">
+              {manifesto.authorName || 'Sua assinatura'}
             </h2>
             {manifesto.professionalTitle && (
-              <p className="text-sm text-teal-200/80 font-sans">
-                {manifesto.professionalTitle}
-              </p>
+              <p className="text-sm text-ink-muted">{manifesto.professionalTitle}</p>
             )}
           </div>
-
-          <p className="text-sm text-stone-300 line-clamp-2 max-w-2xl font-sans leading-relaxed">
+          <p className="text-xs text-ink-faint leading-relaxed line-clamp-2 max-w-xl">
             {manifesto.worldviewDescription}
           </p>
-
-          <p className="text-xs text-stone-400 line-clamp-2 max-w-2xl font-sans leading-relaxed">
-            <span className="font-semibold text-stone-300">Tom de voz: </span>
-            {manifesto.toneOfVoice}
-          </p>
         </div>
 
-        <button
+        <Button
           type="button"
+          variant="ghost"
+          size="sm"
           onClick={onOpenManifestoEditor}
-          className="px-4 py-2.5 bg-teal-800 hover:bg-teal-700 text-teal-100 font-semibold text-xs rounded-xl border border-teal-600/50 flex items-center space-x-1 shrink-0 transition-all cursor-pointer"
+          className="shrink-0 self-start sm:self-auto"
         >
-          <span>Editar Visão</span>
-          <ArrowUpRight className="w-4 h-4 text-amber-300" />
-        </button>
-      </div>
+          Editar visão
+          <ArrowUpRight className="w-3.5 h-3.5" aria-hidden="true" />
+        </Button>
+      </Card>
 
-      {/* TOPIC GENERATOR WITH IA */}
-      {showTopicGenerator ? (
+      {showTopicGenerator && (
         <TopicGenerator
           manifesto={manifesto}
-          onSelectTopic={(selectedTopic) => {
-            if (typeof selectedTopic === 'string') {
-              setTopic(selectedTopic);
-            } else {
-              const fullFormatted = `TÍTULO: "${selectedTopic.title}"\nÂNGULO DE ABORDAGEM: ${selectedTopic.angle}\nJUSTIFICATIVA / ADERÊNCIA: ${selectedTopic.whyItFits}${selectedTopic.category ? `\nCATEGORIA: ${selectedTopic.category}` : ''}`;
-              setTopic(fullFormatted);
-            }
-            const inputEl = document.getElementById('article-topic-input');
-            if (inputEl) {
-              inputEl.focus();
-              inputEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            }
+          onSelectTopic={(selected) => {
+            setTopic(
+              typeof selected === 'string'
+                ? selected
+                : `TÍTULO: "${selected.title}"\nÂNGULO DE ABORDAGEM: ${selected.angle}\nJUSTIFICATIVA: ${selected.whyItFits}${
+                    selected.category ? `\nCATEGORIA: ${selected.category}` : ''
+                  }`
+            );
+            const el = document.getElementById('article-topic-input');
+            el?.focus();
+            el?.scrollIntoView({ behavior: 'smooth', block: 'center' });
           }}
         />
-      ) : (
-        <div className="flex justify-end">
-          <button
-            type="button"
-            onClick={() => setShowTopicGenerator(true)}
-            className="text-xs bg-amber-100 hover:bg-amber-200 text-amber-900 font-bold px-4 py-2 rounded-xl flex items-center space-x-1.5 transition-all cursor-pointer shadow-xs"
-          >
-            <Compass className="w-4 h-4 text-amber-700" />
-            <span>Abrir Gerador de Tópicos com IA</span>
-          </button>
-        </div>
       )}
 
-      {/* SECTION 1: TOPIC INPUT */}
-      <div className="bg-white dark:bg-[#18191e] rounded-3xl p-4 sm:p-8 border border-stone-200 dark:border-stone-800 shadow-sm space-y-4 transition-colors">
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
-          <div className="flex items-center space-x-2 text-stone-900 dark:text-stone-100 font-bold text-base sm:text-lg">
-            <Brain className="w-5 h-5 text-teal-700 dark:text-amber-300 shrink-0" />
-            <h2>1. Qual ideia ou tema você quer desenvolver hoje?</h2>
-          </div>
-          <button
-            type="button"
-            onClick={() => setShowTopicGenerator(!showTopicGenerator)}
-            className="text-xs text-amber-800 dark:text-amber-300 hover:text-amber-950 dark:hover:text-amber-200 font-semibold flex items-center space-x-1 bg-amber-50 dark:bg-stone-900 hover:bg-amber-100 dark:hover:bg-stone-800 px-3 py-1.5 rounded-xl border border-amber-200 dark:border-stone-700 transition-all cursor-pointer self-end sm:self-auto"
-          >
-            <Compass className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" />
-            <span>{showTopicGenerator ? 'Ocultar Gerador' : 'Gerar Ideias com IA'}</span>
-          </button>
-        </div>
+      {/* Tema */}
+      <Card className="space-y-5">
+        <SectionHeader
+          eyebrow="Etapa 1"
+          title="Sobre o que você quer escrever?"
+          action={
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={() => setShowTopicGenerator((v) => !v)}
+            >
+              {showTopicGenerator ? 'Ocultar sugestões' : 'Gerar ideias'}
+            </Button>
+          }
+        />
 
-        <div>
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 mb-1.5">
-            <label className="block text-xs font-bold text-stone-700 dark:text-stone-300 uppercase tracking-wider">
-              Tema Principal ou Pergunta do Leitor *
-            </label>
-            {topic.includes('ÂNGULO DE ABORDAGEM:') && (
-              <span className="bg-teal-100 dark:bg-teal-950 text-teal-900 dark:text-teal-200 border border-teal-300 dark:border-teal-800 text-[11px] font-bold px-2.5 py-0.5 rounded-full flex items-center space-x-1 self-start sm:self-auto">
-                <CheckCircle2 className="w-3 h-3 text-teal-700 dark:text-teal-400 shrink-0" />
-                <span>Pauta Completa Carregada (Título + Ângulo + Justificativa)</span>
-              </span>
-            )}
-          </div>
+        <Field
+          label="Tema ou pergunta"
+          htmlFor="article-topic-input"
+          required
+          value={topic}
+          maxLength={TOPIC_MAX}
+          hint="Pode ser uma pergunta de leitor, uma inquietação clínica ou uma pauta completa vinda do gerador."
+        >
           <textarea
             id="article-topic-input"
             required
-            rows={topic.includes('\n') ? 5 : 3}
-            placeholder="Ex: Como parar de se cobrar tanto quando algo dá errado na rotina..."
+            maxLength={TOPIC_MAX}
+            rows={topic.includes('\n') ? 6 : 3}
+            placeholder="Ex.: o que sustenta a autocobrança quando algo dá errado na rotina…"
             value={topic}
             onChange={(e) => setTopic(e.target.value)}
-            className="w-full px-4 py-3 bg-stone-50 dark:bg-stone-900 border border-stone-300 dark:border-stone-700 rounded-2xl text-stone-900 dark:text-stone-100 text-sm focus:ring-2 focus:ring-teal-500 focus:bg-white dark:focus:bg-stone-900 transition-all font-medium leading-relaxed resize-y"
+            className={cx(controlClass, 'leading-relaxed resize-y')}
           />
-        </div>
+        </Field>
 
-        {/* Quick Topic Suggestions */}
-        <div className="space-y-2 pt-1">
-          <span className="text-xs font-semibold text-stone-500 dark:text-stone-400 flex items-center space-x-1">
-            <Lightbulb className="w-3.5 h-3.5 text-amber-500" />
-            <span>Sugestões Rápidas de Temas:</span>
-          </span>
-
-          <div className="flex flex-wrap gap-2">
-            {QUICK_TOPICS.map((suggested, idx) => (
+        <div className="space-y-2">
+          <p className="text-[11px] font-semibold uppercase tracking-wider text-ink-faint">
+            Sugestões rápidas
+          </p>
+          <div className="flex flex-wrap gap-1.5">
+            {QUICK_TOPICS.map((suggestion) => (
               <button
-                key={idx}
+                key={suggestion}
                 type="button"
-                onClick={() => setTopic(suggested)}
-                className={`text-xs px-3 py-1.5 rounded-full border transition-all text-left ${
-                  topic === suggested
-                    ? 'bg-teal-800 dark:bg-amber-400 text-white dark:text-stone-950 border-teal-900 dark:border-amber-400 font-semibold'
-                    : 'bg-stone-100 dark:bg-stone-900 hover:bg-stone-200 dark:hover:bg-stone-800 text-stone-700 dark:text-stone-300 border-stone-200 dark:border-stone-800'
-                }`}
+                onClick={() => setTopic(suggestion)}
+                className={cx(
+                  'text-[11px] px-2.5 py-1.5 rounded-full border text-left transition-colors cursor-pointer',
+                  topic === suggestion
+                    ? 'border-accent bg-accent-soft text-accent-ink'
+                    : 'border-line bg-surface-sunken text-ink-muted hover:border-line-strong hover:text-ink'
+                )}
               >
-                {suggested}
+                {suggestion}
               </button>
             ))}
           </div>
         </div>
-      </div>
+      </Card>
 
-      {/* SECTION 2: ARTICLE OPTIONS */}
-      <div className="bg-white dark:bg-[#18191e] rounded-3xl p-4 sm:p-8 border border-stone-200 dark:border-stone-800 shadow-sm space-y-6 transition-colors">
-        <div className="flex items-center space-x-2 text-stone-900 dark:text-stone-100 font-bold text-base sm:text-lg border-b border-stone-100 dark:border-stone-800 pb-3">
-          <Sliders className="w-5 h-5 text-amber-600 dark:text-amber-400 shrink-0" />
-          <h2>2. Estrutura e Formato do Artigo</h2>
-        </div>
+      {/* Formato */}
+      <Card className="space-y-5">
+        <SectionHeader eyebrow="Etapa 2" title="Formato do texto" />
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          
-          {/* Target Audience */}
-          <div>
-            <label className="block text-xs font-bold text-stone-700 dark:text-stone-300 uppercase tracking-wider mb-2">
-              Público-Alvo
-            </label>
-            <input
-              type="text"
-              value={targetAudience}
-              onChange={(e) => setTargetAudience(e.target.value)}
-              className="w-full p-3 bg-stone-50 dark:bg-stone-900 border border-stone-300 dark:border-stone-700 rounded-xl text-xs sm:text-sm text-stone-900 dark:text-stone-100 font-medium focus:ring-2 focus:ring-amber-500"
-            />
-          </div>
+        <Field label="Público-alvo" htmlFor="target-audience">
+          <input
+            id="target-audience"
+            type="text"
+            value={targetAudience}
+            onChange={(e) => setTargetAudience(e.target.value)}
+            className={controlClass}
+          />
+        </Field>
 
-          {/* Depth Level */}
-          <div>
-            <label className="block text-xs font-bold text-stone-700 dark:text-stone-300 uppercase tracking-wider mb-2">
-              Nível de Profundidade
-            </label>
-            <div className="grid grid-cols-3 gap-2">
-              {[
-                { id: 'iniciante', label: 'Iniciante', desc: 'Didático & Leve' },
-                { id: 'intermediario', label: 'Intermediário', desc: 'Equilibrado' },
-                { id: 'aprofundado', label: 'Aprofundado', desc: 'Profundo' },
-              ].map((lvl) => (
-                <button
-                  key={lvl.id}
-                  type="button"
-                  onClick={() => setDepthLevel(lvl.id as any)}
-                  className={`p-2.5 rounded-xl border text-center transition-all ${
-                    depthLevel === lvl.id
-                      ? 'bg-amber-100/80 dark:bg-amber-400/20 border-amber-500 text-amber-950 dark:text-amber-300 font-bold'
-                      : 'bg-stone-50 dark:bg-stone-900 border-stone-200 dark:border-stone-800 text-stone-700 dark:text-stone-300 hover:bg-stone-100 dark:hover:bg-stone-800'
-                  }`}
-                >
-                  <div className="text-xs font-bold">{lvl.label}</div>
-                  <div className="text-[10px] text-stone-500 dark:text-stone-400">{lvl.desc}</div>
-                </button>
-              ))}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+          <Field label="Profundidade" htmlFor="depth-group">
+            <div id="depth-group">
+              <OptionGroup
+                ariaLabel="Nível de profundidade"
+                options={DEPTH_LEVELS}
+                value={depthLevel}
+                onChange={(id) => setDepthLevel(id)}
+              />
             </div>
-          </div>
+          </Field>
 
-          {/* Article Length */}
-          <div>
-            <label className="block text-xs font-bold text-stone-700 dark:text-stone-300 uppercase tracking-wider mb-2">
-              Tamanho do Artigo
-            </label>
-            <div className="grid grid-cols-3 gap-2">
-              {[
-                { id: 'curto', label: 'Curto', desc: '~600 palavras' },
-                { id: 'medio', label: 'Médio', desc: '~1000 palavras' },
-                { id: 'longo', label: 'Longo', desc: '~1500 palavras' },
-              ].map((len) => (
-                <button
-                  key={len.id}
-                  type="button"
-                  onClick={() => setArticleLength(len.id as any)}
-                  className={`p-2.5 rounded-xl border text-center transition-all ${
-                    articleLength === len.id
-                      ? 'bg-amber-100/80 dark:bg-amber-400/20 border-amber-500 text-amber-950 dark:text-amber-300 font-bold'
-                      : 'bg-stone-50 dark:bg-stone-900 border-stone-200 dark:border-stone-800 text-stone-700 dark:text-stone-300 hover:bg-stone-100 dark:hover:bg-stone-800'
-                  }`}
-                >
-                  <div className="text-xs font-bold">{len.label}</div>
-                  <div className="text-[10px] text-stone-500 dark:text-stone-400">{len.desc}</div>
-                </button>
-              ))}
+          <Field label="Tamanho" htmlFor="length-group">
+            <div id="length-group">
+              <OptionGroup
+                ariaLabel="Tamanho do artigo"
+                options={LENGTHS}
+                value={articleLength}
+                onChange={(id) => setArticleLength(id)}
+              />
             </div>
-          </div>
-
+          </Field>
         </div>
-      </div>
+      </Card>
 
-      {/* SECTION 3: VISUAL STYLE FOR COVER IMAGE */}
-      <div className="bg-white dark:bg-[#18191e] rounded-3xl p-4 sm:p-8 border border-stone-200 dark:border-stone-800 shadow-sm space-y-4 transition-colors">
-        <div className="flex items-center space-x-2 text-stone-900 dark:text-stone-100 font-bold text-base sm:text-lg">
-          <Palette className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
-          <h2>3. Estilo Visual da Capa Editorial</h2>
-        </div>
+      {/* Capa */}
+      <Card className="space-y-5">
+        <SectionHeader
+          eyebrow="Etapa 3"
+          title="Estilo da capa"
+          description="O designer usa o resumo do artigo e este estilo para compor a ilustração."
+        />
 
-        <p className="text-xs sm:text-sm text-stone-600 dark:text-stone-400">
-          O Agente Designer usará o resumo do artigo e o estilo selecionado para criar a imagem conceitual da capa.
-        </p>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+        <div
+          role="radiogroup"
+          aria-label="Estilo visual da capa"
+          className="grid grid-cols-1 sm:grid-cols-2 gap-2"
+        >
           {VISUAL_STYLES.map((style) => {
-            const isSelected = style.id === selectedStyleId;
+            const active = style.id === selectedStyleId;
             return (
-              <div
+              <button
                 key={style.id}
+                type="button"
+                role="radio"
+                aria-checked={active}
                 onClick={() => setSelectedStyleId(style.id)}
-                className={`p-4 rounded-2xl border cursor-pointer transition-all space-y-2 bg-gradient-to-br ${style.previewColor} ${
-                  isSelected
-                    ? 'ring-2 ring-indigo-600 shadow-md font-semibold'
-                    : 'opacity-80 hover:opacity-100 hover:shadow-xs'
-                }`}
+                className={cx(
+                  'flex items-start gap-3 p-3 rounded-control border text-left transition-colors cursor-pointer',
+                  active
+                    ? 'border-accent bg-accent-soft'
+                    : 'border-line bg-surface-sunken hover:border-line-strong'
+                )}
               >
-                <div className="flex items-center justify-between">
-                  <span className="font-bold text-sm">{style.name}</span>
-                  {isSelected && <CheckCircle2 className="w-4 h-4 text-stone-900 shrink-0" />}
-                </div>
-                <p className="text-xs opacity-90 line-clamp-2">{style.description}</p>
-              </div>
+                <span
+                  className={cx(
+                    'w-8 h-8 rounded-md shrink-0 bg-gradient-to-br border border-line',
+                    style.previewColor
+                  )}
+                  aria-hidden="true"
+                />
+                <span className="min-w-0 flex-1">
+                  <span className="flex items-center gap-1.5">
+                    <span
+                      className={cx(
+                        'text-sm font-medium',
+                        active ? 'text-accent-ink' : 'text-ink'
+                      )}
+                    >
+                      {style.name}
+                    </span>
+                    {active && (
+                      <Check className="w-3.5 h-3.5 text-accent-ink shrink-0" aria-hidden="true" />
+                    )}
+                  </span>
+                  <span className="block text-[11px] text-ink-faint leading-relaxed line-clamp-2 mt-0.5">
+                    {style.description}
+                  </span>
+                </span>
+              </button>
             );
           })}
         </div>
-      </div>
+      </Card>
 
-      {/* ADVANCED OVERRIDE PROMPTS (ACCORDION) */}
-      <div className="bg-stone-50 dark:bg-[#18191e] border border-stone-200 dark:border-stone-800 rounded-3xl p-6 space-y-4 transition-colors">
+      {/* Instruções avançadas */}
+      <Card padded={false}>
         <button
           type="button"
-          onClick={() => setShowAdvancedPrompts(!showAdvancedPrompts)}
-          className="w-full flex items-center justify-between text-left text-xs sm:text-sm font-bold text-stone-800 dark:text-stone-200 cursor-pointer"
+          onClick={() => setShowAdvanced((v) => !v)}
+          aria-expanded={showAdvanced}
+          className="w-full flex items-center justify-between gap-3 p-5 text-left cursor-pointer"
         >
-          <div className="flex items-center space-x-2">
-            <Wand2 className="w-4 h-4 text-purple-600 dark:text-purple-400" />
-            <span>Instrução Adicional Específica para este Artigo (Opcional)</span>
-          </div>
-          {showAdvancedPrompts ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+          <span className="min-w-0">
+            <span className="block text-sm font-medium text-ink">
+              Instruções específicas para este artigo
+            </span>
+            <span className="block text-xs text-ink-faint mt-0.5">
+              Opcional — sobrepõe a configuração geral só desta vez.
+            </span>
+          </span>
+          <ChevronDown
+            className={cx(
+              'w-4 h-4 text-ink-faint shrink-0 transition-transform',
+              showAdvanced && 'rotate-180'
+            )}
+            aria-hidden="true"
+          />
         </button>
 
-        {showAdvancedPrompts && (
-          <div className="space-y-4 pt-2 border-t border-stone-200 dark:border-stone-800 animate-fade-in">
-            <div>
-              <label className="block text-xs font-bold text-stone-700 dark:text-stone-300 mb-1">
-                Instrução Extra para o Redator neste texto
-              </label>
+        {showAdvanced && (
+          <div className="px-5 pb-5 space-y-4 border-t border-line pt-4 animate-fade-in">
+            <Field label="Para o redator" htmlFor="custom-writer">
               <textarea
+                id="custom-writer"
                 rows={3}
-                placeholder="Ex: 'Mencionar a metáfora do barco na tempestade no segundo capítulo'..."
+                placeholder="Ex.: retomar a metáfora do barco na tempestade no segundo movimento…"
                 value={customWriterPrompt}
                 onChange={(e) => setCustomWriterPrompt(e.target.value)}
-                className="w-full p-3 bg-white dark:bg-stone-900 border border-stone-300 dark:border-stone-700 rounded-xl text-xs text-stone-800 dark:text-stone-200"
+                className={cx(controlClass, 'resize-y')}
               />
-            </div>
+            </Field>
 
-            <div>
-              <label className="block text-xs font-bold text-stone-700 dark:text-stone-300 mb-1">
-                Instrução Extra para o Revisor Sênior (Crítico & Anti-Clichê)
-              </label>
+            <Field label="Para o revisor" htmlFor="custom-reviewer">
               <textarea
+                id="custom-reviewer"
                 rows={2}
-                placeholder="Ex: 'Exigência máxima: elimine qualquer frase que pareça autoajuda ou ChatGPT e reescreva com rigor ensaístico'..."
+                placeholder="Ex.: eliminar qualquer frase que soe a autoajuda e reescrever com rigor ensaístico…"
                 value={customReviewerPrompt}
                 onChange={(e) => setCustomReviewerPrompt(e.target.value)}
-                className="w-full p-3 bg-white dark:bg-stone-900 border border-stone-300 dark:border-stone-700 rounded-xl text-xs text-stone-800 dark:text-stone-200 focus:ring-2 focus:ring-amber-500"
+                className={cx(controlClass, 'resize-y')}
               />
-            </div>
+            </Field>
 
-            <div>
-              <label className="block text-xs font-bold text-stone-700 dark:text-stone-300 mb-1">
-                Instrução Extra para o Designer da Imagem
-              </label>
+            <Field label="Para o designer da capa" htmlFor="custom-image">
               <textarea
+                id="custom-image"
                 rows={2}
-                placeholder="Ex: 'Usar tons de verde musgo e luz natural da manhã'..."
+                placeholder="Ex.: tons de verde musgo, luz natural da manhã…"
                 value={customImagePrompt}
                 onChange={(e) => setCustomImagePrompt(e.target.value)}
-                className="w-full p-3 bg-white dark:bg-stone-900 border border-stone-300 dark:border-stone-700 rounded-xl text-xs text-stone-800 dark:text-stone-200"
+                className={cx(controlClass, 'resize-y')}
               />
-            </div>
+            </Field>
           </div>
         )}
-      </div>
+      </Card>
 
-      {/* SUBMIT BUTTON */}
-      <div className="flex justify-center pt-2">
-        <button
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-1">
+        <p className="text-xs text-ink-faint">
+          Três etapas encadeadas. Costuma levar de um a três minutos.
+        </p>
+        <Button
           type="submit"
-          disabled={!topic.trim() || isLoading}
-          className="w-full sm:w-auto px-10 py-4 bg-gradient-to-r from-teal-800 via-emerald-800 to-teal-900 hover:from-teal-900 hover:to-emerald-900 text-white font-bold text-base sm:text-lg rounded-2xl shadow-xl shadow-teal-950/20 hover:shadow-2xl transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-3 cursor-pointer"
+          variant="primary"
+          size="lg"
+          disabled={!canSubmit}
+          loading={isLoading}
+          icon={Sparkles}
+          className="w-full sm:w-auto"
         >
-          <Sparkles className="w-5 h-5 text-amber-300 animate-spin" />
-          <span>{isLoading ? 'Produzindo Artigo...' : '🚀 Iniciar Produção da Equipe Virtual'}</span>
-        </button>
+          {isLoading ? 'Produzindo…' : 'Produzir artigo'}
+        </Button>
       </div>
-
     </form>
   );
 };

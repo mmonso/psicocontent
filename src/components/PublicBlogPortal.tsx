@@ -110,48 +110,48 @@ export const PublicBlogPortal: React.FC<PublicBlogPortalProps> = ({
 
   return (
     <div className={`min-h-screen transition-colors duration-300 font-sans pb-24 ${
-      isDark ? 'bg-[#101114] text-stone-100' : 'bg-[#fcfbf8] text-stone-900'
+      isDark ? 'bg-[#101114] text-ink' : 'bg-[#fcfbf8] text-ink'
     }`}>
       {/* Top Banner & Control Bar */}
       <div className={`sticky top-0 z-50 border-b backdrop-blur-md transition-colors ${
-        isDark ? 'bg-[#16171c]/90 border-stone-800/80 text-stone-200' : 'bg-white/90 border-stone-200/80 text-stone-800'
+        isDark ? 'bg-[#16171c]/90 border-line/80 text-ink' : 'bg-surface/90 border-line/80 text-ink'
       }`}>
         <div className="max-w-7xl mx-auto py-2.5 px-4 sm:px-6 flex items-center justify-between gap-3 text-xs">
           <div className="flex items-center space-x-2">
-            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-            <span className={`font-bold uppercase tracking-wider text-[11px] ${isDark ? 'text-amber-300' : 'text-teal-800'}`}>
+            <span className="w-2 h-2 rounded-full bg-accent animate-pulse"></span>
+            <span className={`font-bold uppercase tracking-wider text-[11px] ${isDark ? 'text-accent-ink' : 'text-accent-ink'}`}>
               Portal do Leitor
             </span>
-            <span className="text-stone-400 hidden sm:inline">• Visualização Minimalista & Elegante</span>
+            <span className="text-ink-faint hidden sm:inline">• Visualização Minimalista & Elegante</span>
           </div>
 
           <div className="flex items-center space-x-2 sm:space-x-3">
             {/* Theme Toggle Button */}
             <button
               onClick={() => setTheme(isDark ? 'light' : 'dark')}
-              className={`p-1.5 rounded-lg border flex items-center space-x-1.5 font-medium transition-all cursor-pointer ${
+              className={`p-1.5 rounded-control border flex items-center space-x-1.5 font-medium transition-all cursor-pointer ${
                 isDark
-                  ? 'bg-stone-800 text-amber-300 border-stone-700 hover:bg-stone-700'
-                  : 'bg-stone-100 text-stone-800 border-stone-200 hover:bg-stone-200'
+                  ? 'bg-surface-raised text-accent-ink border-line hover:bg-surface'
+                  : 'bg-surface-raised text-ink border-line hover:bg-surface-raised'
               }`}
               title={isDark ? 'Mudar para Modo Claro Minimalista' : 'Mudar para Modo Escuro Noturno'}
             >
-              {isDark ? <Sun className="w-3.5 h-3.5 text-amber-300" /> : <Moon className="w-3.5 h-3.5 text-indigo-900" />}
+              {isDark ? <Sun className="w-3.5 h-3.5 text-accent-ink" /> : <Moon className="w-3.5 h-3.5 text-accent-ink" />}
               <span className="hidden md:inline text-[11px] font-semibold">
                 {isDark ? 'Modo Claro' : 'Modo Escuro'}
               </span>
             </button>
 
             {/* Layout Toggle */}
-            <div className={`flex items-center rounded-lg border p-0.5 ${
-              isDark ? 'bg-stone-900 border-stone-800' : 'bg-stone-100 border-stone-200'
+            <div className={`flex items-center rounded-control border p-0.5 ${
+              isDark ? 'bg-surface border-line' : 'bg-surface-raised border-line'
             }`}>
               <button
                 onClick={() => setLayoutMode('grid')}
                 className={`p-1 rounded-md transition-all cursor-pointer ${
                   layoutMode === 'grid'
-                    ? isDark ? 'bg-stone-800 text-amber-300' : 'bg-white text-teal-900 shadow-xs'
-                    : 'text-stone-400 hover:text-stone-200'
+                    ? isDark ? 'bg-surface-raised text-accent-ink' : 'bg-surface text-accent-ink shadow-xs'
+                    : 'text-ink-faint hover:text-ink'
                 }`}
                 title="Visualização em Grade"
               >
@@ -161,8 +161,8 @@ export const PublicBlogPortal: React.FC<PublicBlogPortalProps> = ({
                 onClick={() => setLayoutMode('list')}
                 className={`p-1 rounded-md transition-all cursor-pointer ${
                   layoutMode === 'list'
-                    ? isDark ? 'bg-stone-800 text-amber-300' : 'bg-white text-teal-900 shadow-xs'
-                    : 'text-stone-400 hover:text-stone-200'
+                    ? isDark ? 'bg-surface-raised text-accent-ink' : 'bg-surface text-accent-ink shadow-xs'
+                    : 'text-ink-faint hover:text-ink'
                 }`}
                 title="Visualização em Lista Minimalista"
               >
@@ -173,7 +173,7 @@ export const PublicBlogPortal: React.FC<PublicBlogPortalProps> = ({
             {/* Back to Studio */}
             <button
               onClick={onBackToStudio}
-              className="bg-teal-800 hover:bg-teal-700 text-white font-bold px-3 py-1.5 rounded-lg transition-all flex items-center space-x-1 cursor-pointer text-xs"
+              className="bg-accent hover:bg-accent text-ink font-bold px-3 py-1.5 rounded-control transition-all flex items-center space-x-1 cursor-pointer text-xs"
             >
               <ArrowLeft className="w-3.5 h-3.5" />
               <span className="hidden sm:inline">Studio</span>
@@ -184,38 +184,38 @@ export const PublicBlogPortal: React.FC<PublicBlogPortalProps> = ({
 
       {/* Reader Mode Header / Minimalist Masthead */}
       <header className={`py-12 px-4 sm:px-6 lg:px-8 border-b transition-colors ${
-        isDark ? 'bg-[#14151a] border-stone-800/80' : 'bg-white border-stone-200/80'
+        isDark ? 'bg-[#14151a] border-line/80' : 'bg-surface border-line/80'
       }`}>
         <div className="max-w-4xl mx-auto space-y-5 text-center">
           <div className={`inline-flex items-center space-x-2 px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-widest border ${
-            isDark ? 'bg-stone-900 text-amber-300 border-stone-800' : 'bg-stone-100 text-teal-900 border-stone-200'
+            isDark ? 'bg-surface text-accent-ink border-line' : 'bg-surface-raised text-accent-ink border-line'
           }`}>
             <Globe className="w-3.5 h-3.5" />
             <span>Cadernos Ensaísticos de Psicologia</span>
           </div>
 
           <h1 className={`font-serif text-3xl sm:text-5xl font-bold tracking-tight leading-tight ${
-            isDark ? 'text-stone-100' : 'text-stone-950'
+            isDark ? 'text-ink' : 'text-ink'
           }`}>
             {manifesto.authorName ? `Cadernos de ${manifesto.authorName}` : 'Cadernos de Psicologia & Subjetividade'}
           </h1>
 
           <p className={`text-base sm:text-lg max-w-2xl mx-auto font-serif italic leading-relaxed ${
-            isDark ? 'text-stone-400' : 'text-stone-600'
+            isDark ? 'text-ink-faint' : 'text-ink-muted'
           }`}>
             "{manifesto.worldviewDescription?.slice(0, 180) || 'Ensaios e reflexões sobre a clínica, os afetos, as contradições contemporâneas e a busca por sentido.'}..."
           </p>
 
           <div className={`pt-2 flex flex-wrap items-center justify-center gap-4 text-xs ${
-            isDark ? 'text-stone-500' : 'text-stone-500'
+            isDark ? 'text-ink-faint' : 'text-ink-faint'
           }`}>
             <span className="flex items-center space-x-1">
-              <User className={`w-3.5 h-3.5 ${isDark ? 'text-amber-300' : 'text-teal-800'}`} />
+              <User className={`w-3.5 h-3.5 ${isDark ? 'text-accent-ink' : 'text-accent-ink'}`} />
               <span>Por <strong>{manifesto.authorName || 'Profissional da Saúde Mental'}</strong></span>
             </span>
             <span>•</span>
             <span className="flex items-center space-x-1">
-              <BookOpen className={`w-3.5 h-3.5 ${isDark ? 'text-teal-400' : 'text-indigo-600'}`} />
+              <BookOpen className={`w-3.5 h-3.5 ${isDark ? 'text-accent-ink' : 'text-accent-ink'}`} />
               <span>{publishedPosts.length} Ensaios Publicados</span>
             </span>
           </div>
@@ -228,10 +228,10 @@ export const PublicBlogPortal: React.FC<PublicBlogPortalProps> = ({
           {/* Back button */}
           <button
             onClick={() => setSelectedPost(null)}
-            className={`inline-flex items-center space-x-2 px-4 py-2 rounded-xl text-xs font-bold transition-all border cursor-pointer ${
+            className={`inline-flex items-center space-x-2 px-4 py-2 rounded-control text-xs font-bold transition-all border cursor-pointer ${
               isDark
-                ? 'bg-stone-900 text-stone-200 border-stone-800 hover:bg-stone-800'
-                : 'bg-white text-stone-700 border-stone-200 hover:bg-stone-100 shadow-2xs'
+                ? 'bg-surface text-ink border-line hover:bg-surface-raised'
+                : 'bg-surface text-ink-muted border-line hover:bg-surface-raised shadow-2xs'
             }`}
           >
             <ArrowLeft className="w-4 h-4" />
@@ -239,39 +239,39 @@ export const PublicBlogPortal: React.FC<PublicBlogPortalProps> = ({
           </button>
 
           {/* Article Reading Canvas */}
-          <article className={`rounded-3xl p-6 sm:p-12 border transition-colors space-y-8 ${
-            isDark ? 'bg-[#18191e] border-stone-800' : 'bg-white border-stone-200/80 shadow-xs'
+          <article className={`rounded-panel p-6 sm:p-12 border transition-colors space-y-8 ${
+            isDark ? 'bg-[#18191e] border-line' : 'bg-surface border-line/80 shadow-xs'
           }`}>
             <div className="space-y-4">
-              <div className="flex flex-wrap items-center gap-2 text-xs font-medium text-stone-400">
+              <div className="flex flex-wrap items-center gap-2 text-xs font-medium text-ink-faint">
                 <span className={`font-bold px-2.5 py-0.5 rounded-full border text-[11px] ${
                   isDark
-                    ? 'bg-teal-950 text-teal-300 border-teal-800'
-                    : 'bg-teal-50 text-teal-900 border-teal-200'
+                    ? 'bg-accent text-accent-ink border-accent/40'
+                    : 'bg-accent-soft text-accent-ink border-accent/40'
                 }`}>
                   Ensaio
                 </span>
                 <span>•</span>
                 <span className="flex items-center space-x-1">
-                  <Calendar className="w-3.5 h-3.5 text-stone-400" />
+                  <Calendar className="w-3.5 h-3.5 text-ink-faint" />
                   <span>{formatDate(selectedPost.createdAt)}</span>
                 </span>
                 <span>•</span>
                 <span className="flex items-center space-x-1">
-                  <Clock className="w-3.5 h-3.5 text-stone-400" />
+                  <Clock className="w-3.5 h-3.5 text-ink-faint" />
                   <span>{selectedPost.review?.readingTimeMinutes || 5} min de leitura</span>
                 </span>
               </div>
 
               <h1 className={`font-serif text-3xl sm:text-4xl font-bold leading-tight ${
-                isDark ? 'text-stone-100' : 'text-stone-950'
+                isDark ? 'text-ink' : 'text-ink'
               }`}>
                 {selectedPost.review?.revisedTitle || selectedPost.draft?.title}
               </h1>
 
               {selectedPost.review?.revisedSubtitle && (
                 <p className={`text-lg sm:text-xl font-serif italic leading-relaxed ${
-                  isDark ? 'text-stone-300' : 'text-stone-600'
+                  isDark ? 'text-ink-muted' : 'text-ink-muted'
                 }`}>
                   {selectedPost.review.revisedSubtitle}
                 </p>
@@ -284,8 +284,8 @@ export const PublicBlogPortal: React.FC<PublicBlogPortalProps> = ({
                     key={tag}
                     className={`text-[11px] font-semibold px-2.5 py-0.5 rounded-md border ${
                       isDark
-                        ? 'bg-stone-900 text-stone-300 border-stone-800'
-                        : 'bg-stone-100 text-stone-700 border-stone-200'
+                        ? 'bg-surface text-ink-muted border-line'
+                        : 'bg-surface-raised text-ink-muted border-line'
                     }`}
                   >
                     #{tag}
@@ -296,8 +296,8 @@ export const PublicBlogPortal: React.FC<PublicBlogPortalProps> = ({
 
             {/* Cover Image */}
             {selectedPost.image?.imageUrl && (
-              <div className={`rounded-2xl overflow-hidden border ${
-                isDark ? 'border-stone-800 bg-stone-900' : 'border-stone-200 bg-stone-100'
+              <div className={`rounded-panel overflow-hidden border ${
+                isDark ? 'border-line bg-surface' : 'border-line bg-surface-raised'
               }`}>
                 <img
                   src={selectedPost.image.imageUrl}
@@ -306,7 +306,7 @@ export const PublicBlogPortal: React.FC<PublicBlogPortalProps> = ({
                 />
                 {selectedPost.image.promptUsed && (
                   <div className={`p-3 text-[11px] italic flex items-center justify-between border-t ${
-                    isDark ? 'bg-stone-900/80 border-stone-800 text-stone-400' : 'bg-stone-50 border-stone-200 text-stone-500'
+                    isDark ? 'bg-surface/80 border-line text-ink-faint' : 'bg-surface-sunken border-line text-ink-faint'
                   }`}>
                     <span>Ilustração poética gerada via Gemini Imagen</span>
                     <span className="font-sans font-semibold uppercase tracking-wider text-[10px]">
@@ -320,8 +320,8 @@ export const PublicBlogPortal: React.FC<PublicBlogPortalProps> = ({
             {/* Article Content */}
             <div className={`prose max-w-none pt-4 border-t ${
               isDark
-                ? 'prose-invert prose-p:text-stone-200 prose-p:leading-relaxed prose-p:text-base sm:prose-p:text-lg prose-headings:font-serif prose-headings:text-stone-100 prose-blockquote:border-amber-400 prose-blockquote:text-stone-300 border-stone-800/80'
-                : 'prose-stone prose-p:text-stone-800 prose-p:leading-relaxed prose-p:text-base sm:prose-p:text-lg prose-headings:font-serif prose-headings:text-stone-900 prose-blockquote:border-teal-800 prose-blockquote:text-stone-700 border-stone-100'
+                ? 'prose-invert prose-p:text-ink prose-p:leading-relaxed prose-p:text-base sm:prose-p:text-lg prose-headings:font-serif prose-headings:text-ink prose-blockquote:border-accent/40 prose-blockquote:text-ink-muted border-line/80'
+                : 'prose-stone prose-p:text-ink prose-p:leading-relaxed prose-p:text-base sm:prose-p:text-lg prose-headings:font-serif prose-headings:text-ink prose-blockquote:border-accent/40 prose-blockquote:text-ink-muted border-line'
             }`}>
               <Markdown>
                 {selectedPost.review?.revisedText || selectedPost.draft?.rawText || ''}
@@ -330,21 +330,21 @@ export const PublicBlogPortal: React.FC<PublicBlogPortalProps> = ({
 
             {/* Key Takeaways */}
             {selectedPost.review?.keyTakeaways && selectedPost.review.keyTakeaways.length > 0 && (
-              <div className={`rounded-2xl p-6 space-y-3 border ${
+              <div className={`rounded-panel p-6 space-y-3 border ${
                 isDark
-                  ? 'bg-stone-900/90 border-teal-800/60 text-stone-200'
-                  : 'bg-teal-50/60 border-teal-200 text-teal-950'
+                  ? 'bg-surface/90 border-accent/40/60 text-ink'
+                  : 'bg-accent-soft/60 border-accent/40 text-accent-ink'
               }`}>
                 <h3 className={`font-serif font-bold text-base flex items-center space-x-2 ${
-                  isDark ? 'text-teal-300' : 'text-teal-950'
+                  isDark ? 'text-accent-ink' : 'text-accent-ink'
                 }`}>
-                  <Sparkles className="w-4 h-4 text-amber-400" />
+                  <Sparkles className="w-4 h-4 text-accent-ink" />
                   <span>Síntese Reflexiva para a Vida Cotidiana:</span>
                 </h3>
                 <ul className="space-y-2 text-xs sm:text-sm">
                   {selectedPost.review.keyTakeaways.map((takeaway, idx) => (
                     <li key={idx} className="flex items-start space-x-2">
-                      <span className={isDark ? 'text-teal-400 font-bold' : 'text-teal-700 font-bold'}>•</span>
+                      <span className={isDark ? 'text-accent-ink font-bold' : 'text-accent-ink font-bold'}>•</span>
                       <span>{takeaway}</span>
                     </li>
                   ))}
@@ -353,37 +353,37 @@ export const PublicBlogPortal: React.FC<PublicBlogPortalProps> = ({
             )}
 
             {/* Author Footer Bio */}
-            <div className={`rounded-2xl p-6 sm:p-8 space-y-4 border ${
+            <div className={`rounded-panel p-6 sm:p-8 space-y-4 border ${
               isDark
-                ? 'bg-stone-950 border-stone-800 text-stone-200'
-                : 'bg-stone-900 text-stone-100 border-stone-800'
+                ? 'bg-canvas border-line text-ink'
+                : 'bg-surface text-ink border-line'
             }`}>
               <div className="flex items-center space-x-3">
-                <div className="w-12 h-12 rounded-full bg-teal-800 border-2 border-amber-300 flex items-center justify-center font-bold text-amber-300 font-serif text-xl shrink-0">
+                <div className="w-12 h-12 rounded-full bg-accent border-2 border-accent/40 flex items-center justify-center font-bold text-accent-ink font-serif text-xl shrink-0">
                   {(manifesto.authorName || 'P')[0]}
                 </div>
                 <div>
-                  <h4 className="font-serif font-bold text-lg text-white">{manifesto.authorName || 'Profissional da Saúde Mental'}</h4>
-                  <p className="text-xs text-stone-400">Escrito com fundamentação clínica, ética e profundidade autoral.</p>
+                  <h4 className="font-serif font-bold text-lg text-ink">{manifesto.authorName || 'Profissional da Saúde Mental'}</h4>
+                  <p className="text-xs text-ink-faint">Escrito com fundamentação clínica, ética e profundidade autoral.</p>
                 </div>
               </div>
-              <p className="text-xs sm:text-sm text-stone-300 leading-relaxed font-serif italic">
+              <p className="text-xs sm:text-sm text-ink-muted leading-relaxed font-serif italic">
                 "{manifesto.worldviewDescription || 'A clínica psicológica como espaço de escuta sem julgamentos e resgate da potência de agir.'}"
               </p>
-              <div className="pt-2 flex flex-wrap items-center justify-between gap-3 border-t border-stone-800">
+              <div className="pt-2 flex flex-wrap items-center justify-between gap-3 border-t border-line">
                 <button
                   onClick={() => handleShare(selectedPost.review?.revisedTitle || '')}
-                  className="bg-stone-800 hover:bg-stone-700 text-stone-200 px-4 py-2 rounded-xl text-xs font-bold flex items-center space-x-1.5 transition-all cursor-pointer"
+                  className="bg-surface-raised hover:bg-surface text-ink px-4 py-2 rounded-control text-xs font-bold flex items-center space-x-1.5 transition-all cursor-pointer"
                 >
-                  {copiedLink ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Share2 className="w-3.5 h-3.5 text-amber-300" />}
+                  {copiedLink ? <Check className="w-3.5 h-3.5 text-accent-ink" /> : <Share2 className="w-3.5 h-3.5 text-accent-ink" />}
                   <span>{copiedLink ? 'Link Copiado!' : 'Compartilhar Ensaio'}</span>
                 </button>
 
                 <button
                   onClick={() => setShowExportModal(selectedPost)}
-                  className="bg-teal-700 hover:bg-teal-600 text-white px-4 py-2 rounded-xl text-xs font-bold flex items-center space-x-1.5 transition-all cursor-pointer"
+                  className="bg-accent hover:bg-accent text-ink px-4 py-2 rounded-control text-xs font-bold flex items-center space-x-1.5 transition-all cursor-pointer"
                 >
-                  <Code2 className="w-3.5 h-3.5 text-amber-300" />
+                  <Code2 className="w-3.5 h-3.5 text-accent-ink" />
                   <span>Exportar para WordPress / Ghost</span>
                 </button>
               </div>
@@ -394,47 +394,47 @@ export const PublicBlogPortal: React.FC<PublicBlogPortalProps> = ({
         /* Blog Main Landing View */
         <main className="max-w-5xl mx-auto px-4 sm:px-6 py-10 space-y-10">
           {/* Search & Categories */}
-          <div className={`rounded-2xl p-4 sm:p-6 border transition-colors space-y-4 ${
-            isDark ? 'bg-[#18191e] border-stone-800/80' : 'bg-white border-stone-200/80 shadow-xs'
+          <div className={`rounded-panel p-4 sm:p-6 border transition-colors space-y-4 ${
+            isDark ? 'bg-[#18191e] border-line/80' : 'bg-surface border-line/80 shadow-xs'
           }`}>
             <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
               {/* Search Bar */}
               <div className="relative w-full sm:w-96">
-                <Search className="w-4 h-4 text-stone-400 absolute left-3.5 top-3" />
+                <Search className="w-4 h-4 text-ink-faint absolute left-3.5 top-3" />
                 <input
                   type="text"
                   placeholder="Buscar por temas, ansiedade, luto, clínica..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className={`w-full pl-10 pr-4 py-2.5 rounded-xl text-xs focus:outline-none focus:ring-2 font-medium border transition-colors ${
+                  className={`w-full pl-10 pr-4 py-2.5 rounded-control text-xs focus:outline-none focus:ring-2 font-medium border transition-colors ${
                     isDark
-                      ? 'bg-stone-900 border-stone-800 text-stone-100 focus:ring-amber-400'
-                      : 'bg-stone-50 border-stone-200 text-stone-900 focus:ring-teal-500'
+                      ? 'bg-surface border-line text-ink focus:ring-accent'
+                      : 'bg-surface-sunken border-line text-ink focus:ring-accent'
                   }`}
                 />
               </div>
 
               {/* Counter & Mode Badge */}
-              <div className="flex items-center space-x-3 self-end sm:self-auto text-xs text-stone-400 font-medium">
+              <div className="flex items-center space-x-3 self-end sm:self-auto text-xs text-ink-faint font-medium">
                 <span>{filteredPosts.length} ensaio(s)</span>
               </div>
             </div>
 
             {/* Category Tags */}
             {allCategories.length > 1 && (
-              <div className={`flex flex-wrap gap-1.5 pt-2 border-t ${isDark ? 'border-stone-800/60' : 'border-stone-100'}`}>
+              <div className={`flex flex-wrap gap-1.5 pt-2 border-t ${isDark ? 'border-line/60' : 'border-line'}`}>
                 {allCategories.map((cat) => (
                   <button
                     key={cat}
                     onClick={() => setSelectedCategory(cat)}
-                    className={`px-3 py-1.5 rounded-xl text-xs font-medium transition-all cursor-pointer ${
+                    className={`px-3 py-1.5 rounded-control text-xs font-medium transition-all cursor-pointer ${
                       selectedCategory === cat
                         ? isDark
-                          ? 'bg-amber-400 text-stone-950 font-bold shadow-xs'
-                          : 'bg-teal-900 text-white font-bold shadow-xs'
+                          ? 'bg-accent text-ink font-bold shadow-xs'
+                          : 'bg-accent text-ink font-bold shadow-xs'
                         : isDark
-                          ? 'bg-stone-900 text-stone-300 hover:bg-stone-800'
-                          : 'bg-stone-100 text-stone-700 hover:bg-stone-200'
+                          ? 'bg-surface text-ink-muted hover:bg-surface-raised'
+                          : 'bg-surface-raised text-ink-muted hover:bg-surface-raised'
                     }`}
                   >
                     {cat}
@@ -446,25 +446,25 @@ export const PublicBlogPortal: React.FC<PublicBlogPortalProps> = ({
 
           {/* If No Published Posts */}
           {publishedPosts.length === 0 && (
-            <div className={`rounded-3xl p-12 text-center border space-y-4 max-w-xl mx-auto ${
-              isDark ? 'bg-[#18191e] border-stone-800' : 'bg-white border-stone-200'
+            <div className={`rounded-panel p-12 text-center border space-y-4 max-w-xl mx-auto ${
+              isDark ? 'bg-[#18191e] border-line' : 'bg-surface border-line'
             }`}>
               <div className={`w-16 h-16 rounded-full flex items-center justify-center mx-auto border ${
-                isDark ? 'bg-stone-900 text-amber-300 border-stone-800' : 'bg-teal-50 text-teal-800 border-teal-200'
+                isDark ? 'bg-surface text-accent-ink border-line' : 'bg-accent-soft text-accent-ink border-accent/40'
               }`}>
                 <BookOpen className="w-8 h-8" />
               </div>
-              <h3 className={`font-serif font-bold text-2xl ${isDark ? 'text-stone-100' : 'text-stone-900'}`}>
+              <h3 className={`font-serif font-bold text-2xl ${isDark ? 'text-ink' : 'text-ink'}`}>
                 Nenhum Ensaio Publicado Ainda
               </h3>
-              <p className="text-stone-400 text-sm leading-relaxed">
+              <p className="text-ink-faint text-sm leading-relaxed">
                 Você pode gerar seu primeiro artigo na aba <strong>Criar Artigo</strong> com sua equipe virtual e salvá-lo para aparecer aqui!
               </p>
               <button
                 onClick={onBackToStudio}
-                className="bg-teal-800 hover:bg-teal-700 text-white font-bold px-6 py-3 rounded-2xl text-xs transition-all shadow-md cursor-pointer inline-flex items-center space-x-2"
+                className="bg-accent hover:bg-accent text-ink font-bold px-6 py-3 rounded-panel text-xs transition-all shadow-md cursor-pointer inline-flex items-center space-x-2"
               >
-                <Sparkles className="w-4 h-4 text-amber-300" />
+                <Sparkles className="w-4 h-4 text-accent-ink" />
                 <span>Criar Meu Primeiro Ensaio Agora</span>
               </button>
             </div>
@@ -473,19 +473,19 @@ export const PublicBlogPortal: React.FC<PublicBlogPortalProps> = ({
           {/* Featured Article */}
           {featuredPost && (
             <section className="space-y-3">
-              <div className="flex items-center space-x-2 text-xs font-bold uppercase tracking-widest text-teal-800">
-                <Sparkles className={`w-4 h-4 ${isDark ? 'text-amber-400' : 'text-amber-500'}`} />
-                <span className={isDark ? 'text-amber-300' : 'text-teal-900'}>Ensaio em Destaque</span>
+              <div className="flex items-center space-x-2 text-xs font-bold uppercase tracking-widest text-accent-ink">
+                <Sparkles className={`w-4 h-4 ${isDark ? 'text-accent-ink' : 'text-accent-ink'}`} />
+                <span className={isDark ? 'text-accent-ink' : 'text-accent-ink'}>Ensaio em Destaque</span>
               </div>
 
               <div
                 onClick={() => setSelectedPost(featuredPost)}
-                className={`rounded-3xl border overflow-hidden grid grid-cols-1 md:grid-cols-12 transition-all cursor-pointer group hover:border-teal-500/50 ${
-                  isDark ? 'bg-[#18191e] border-stone-800/80 shadow-lg' : 'bg-white border-stone-200/80 shadow-xs hover:shadow-md'
+                className={`rounded-panel border overflow-hidden grid grid-cols-1 md:grid-cols-12 transition-all cursor-pointer group hover:border-accent/40/50 ${
+                  isDark ? 'bg-[#18191e] border-line/80 shadow-lg' : 'bg-surface border-line/80 shadow-xs hover:shadow-md'
                 }`}
               >
                 {/* Image */}
-                <div className="md:col-span-6 min-h-[260px] sm:min-h-[340px] relative overflow-hidden bg-stone-900">
+                <div className="md:col-span-6 min-h-[260px] sm:min-h-[340px] relative overflow-hidden bg-surface">
                   {featuredPost.image?.imageUrl ? (
                     <img
                       src={featuredPost.image.imageUrl}
@@ -493,7 +493,7 @@ export const PublicBlogPortal: React.FC<PublicBlogPortalProps> = ({
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                     />
                   ) : (
-                    <div className="w-full h-full flex items-center justify-center bg-teal-900 text-teal-200 p-8 text-center font-serif">
+                    <div className="w-full h-full flex items-center justify-center bg-accent text-accent-ink p-8 text-center font-serif">
                       <span>"{featuredPost.review?.revisedTitle}"</span>
                     </div>
                   )}
@@ -502,9 +502,9 @@ export const PublicBlogPortal: React.FC<PublicBlogPortalProps> = ({
                 {/* Content */}
                 <div className="md:col-span-6 p-6 sm:p-8 flex flex-col justify-between space-y-4">
                   <div className="space-y-3">
-                    <div className="flex items-center space-x-2 text-xs text-stone-400 font-medium">
+                    <div className="flex items-center space-x-2 text-xs text-ink-faint font-medium">
                       <span className={`font-bold px-2.5 py-0.5 rounded-full text-[10px] ${
-                        isDark ? 'bg-amber-400/20 text-amber-300 border border-amber-400/30' : 'bg-teal-100 text-teal-900'
+                        isDark ? 'bg-accent/20 text-accent-ink border border-accent/40/30' : 'bg-accent-soft text-accent-ink'
                       }`}>
                         Destaque
                       </span>
@@ -515,27 +515,27 @@ export const PublicBlogPortal: React.FC<PublicBlogPortalProps> = ({
                     </div>
 
                     <h2 className={`font-serif text-2xl sm:text-3xl font-bold transition-colors leading-tight ${
-                      isDark ? 'text-stone-100 group-hover:text-amber-300' : 'text-stone-950 group-hover:text-teal-900'
+                      isDark ? 'text-ink group-hover:text-accent-ink' : 'text-ink group-hover:text-accent-ink'
                     }`}>
                       {featuredPost.review?.revisedTitle || featuredPost.draft?.title}
                     </h2>
 
                     <p className={`text-sm font-serif italic line-clamp-3 leading-relaxed ${
-                      isDark ? 'text-stone-400' : 'text-stone-600'
+                      isDark ? 'text-ink-faint' : 'text-ink-muted'
                     }`}>
                       {featuredPost.review?.revisedSubtitle || featuredPost.review?.metaDescription}
                     </p>
                   </div>
 
                   <div className={`pt-4 border-t flex items-center justify-between ${
-                    isDark ? 'border-stone-800' : 'border-stone-100'
+                    isDark ? 'border-line' : 'border-line'
                   }`}>
                     <div className="flex flex-wrap gap-1">
                       {featuredPost.review?.suggestedTags?.slice(0, 3).map((t) => (
                         <span
                           key={t}
                           className={`text-[10px] font-medium px-2 py-0.5 rounded ${
-                            isDark ? 'bg-stone-900 text-stone-400' : 'bg-stone-100 text-stone-600'
+                            isDark ? 'bg-surface text-ink-faint' : 'bg-surface-raised text-ink-muted'
                           }`}
                         >
                           #{t}
@@ -544,7 +544,7 @@ export const PublicBlogPortal: React.FC<PublicBlogPortalProps> = ({
                     </div>
 
                     <span className={`text-xs font-bold flex items-center space-x-1 group-hover:translate-x-1 transition-transform ${
-                      isDark ? 'text-amber-300' : 'text-teal-900'
+                      isDark ? 'text-accent-ink' : 'text-accent-ink'
                     }`}>
                       <span>Ler Ensaio</span>
                       <span>→</span>
@@ -558,7 +558,7 @@ export const PublicBlogPortal: React.FC<PublicBlogPortalProps> = ({
           {/* Regular Posts - Grid or List Minimalist View */}
           {regularPosts.length > 0 && (
             <section className="space-y-4">
-              <h3 className={`font-serif font-bold text-xl ${isDark ? 'text-stone-100' : 'text-stone-900'}`}>
+              <h3 className={`font-serif font-bold text-xl ${isDark ? 'text-ink' : 'text-ink'}`}>
                 Outros Ensaios Publicados
               </h3>
 
@@ -569,16 +569,16 @@ export const PublicBlogPortal: React.FC<PublicBlogPortalProps> = ({
                     <div
                       key={post.id}
                       onClick={() => setSelectedPost(post)}
-                      className={`rounded-2xl border overflow-hidden flex flex-col justify-between transition-all cursor-pointer group ${
+                      className={`rounded-panel border overflow-hidden flex flex-col justify-between transition-all cursor-pointer group ${
                         isDark
-                          ? 'bg-[#18191e] border-stone-800/80 hover:border-stone-700'
-                          : 'bg-white border-stone-200/80 shadow-2xs hover:shadow-md'
+                          ? 'bg-[#18191e] border-line/80 hover:border-line'
+                          : 'bg-surface border-line/80 shadow-2xs hover:shadow-md'
                       }`}
                     >
                       <div className="space-y-3">
                         {/* Thumbnail Image */}
                         {post.image?.imageUrl && (
-                          <div className="h-44 bg-stone-900 overflow-hidden">
+                          <div className="h-44 bg-surface overflow-hidden">
                             <img
                               src={post.image.imageUrl}
                               alt={post.review?.revisedTitle || 'Imagem do post'}
@@ -588,20 +588,20 @@ export const PublicBlogPortal: React.FC<PublicBlogPortalProps> = ({
                         )}
 
                         <div className="p-5 space-y-2">
-                          <div className="flex items-center space-x-2 text-[11px] text-stone-400 font-medium">
+                          <div className="flex items-center space-x-2 text-[11px] text-ink-faint font-medium">
                             <span>{formatDate(post.createdAt)}</span>
                             <span>•</span>
                             <span>{post.review?.readingTimeMinutes || 5} min</span>
                           </div>
 
                           <h4 className={`font-serif font-bold text-lg line-clamp-2 leading-snug transition-colors ${
-                            isDark ? 'text-stone-100 group-hover:text-amber-300' : 'text-stone-950 group-hover:text-teal-900'
+                            isDark ? 'text-ink group-hover:text-accent-ink' : 'text-ink group-hover:text-accent-ink'
                           }`}>
                             {post.review?.revisedTitle || post.draft?.title}
                           </h4>
 
                           <p className={`text-xs font-serif italic line-clamp-2 leading-relaxed ${
-                            isDark ? 'text-stone-400' : 'text-stone-600'
+                            isDark ? 'text-ink-faint' : 'text-ink-muted'
                           }`}>
                             {post.review?.revisedSubtitle || post.review?.metaDescription}
                           </p>
@@ -609,13 +609,13 @@ export const PublicBlogPortal: React.FC<PublicBlogPortalProps> = ({
                       </div>
 
                       <div className={`p-5 pt-0 flex items-center justify-between border-t mt-2 ${
-                        isDark ? 'border-stone-800/80' : 'border-stone-100'
+                        isDark ? 'border-line/80' : 'border-line'
                       }`}>
-                        <span className="text-[11px] text-stone-400 font-medium">
+                        <span className="text-[11px] text-ink-faint font-medium">
                           #{post.review?.suggestedTags?.[0] || 'Ensaio'}
                         </span>
                         <span className={`text-xs font-bold flex items-center space-x-1 group-hover:translate-x-1 transition-transform ${
-                          isDark ? 'text-amber-300' : 'text-teal-900'
+                          isDark ? 'text-accent-ink' : 'text-accent-ink'
                         }`}>
                           <span>Ler</span>
                           <span>→</span>
@@ -631,21 +631,21 @@ export const PublicBlogPortal: React.FC<PublicBlogPortalProps> = ({
                     <article
                       key={post.id}
                       onClick={() => setSelectedPost(post)}
-                      className={`rounded-2xl p-6 border transition-all cursor-pointer group flex flex-col sm:flex-row items-start justify-between gap-6 ${
+                      className={`rounded-panel p-6 border transition-all cursor-pointer group flex flex-col sm:flex-row items-start justify-between gap-6 ${
                         isDark
-                          ? 'bg-[#18191e] border-stone-800/80 hover:border-stone-700'
-                          : 'bg-white border-stone-200/80 shadow-2xs hover:shadow-xs'
+                          ? 'bg-[#18191e] border-line/80 hover:border-line'
+                          : 'bg-surface border-line/80 shadow-2xs hover:shadow-xs'
                       }`}
                     >
                       <div className="space-y-2 flex-1">
-                        <div className="flex items-center space-x-2 text-[11px] text-stone-400 font-medium">
+                        <div className="flex items-center space-x-2 text-[11px] text-ink-faint font-medium">
                           <span>{formatDate(post.createdAt)}</span>
                           <span>•</span>
                           <span>{post.review?.readingTimeMinutes || 5} min de leitura</span>
                           {post.review?.suggestedTags?.[0] && (
                             <>
                               <span>•</span>
-                              <span className={isDark ? 'text-amber-300' : 'text-teal-800'}>
+                              <span className={isDark ? 'text-accent-ink' : 'text-accent-ink'}>
                                 #{post.review.suggestedTags[0]}
                               </span>
                             </>
@@ -653,25 +653,25 @@ export const PublicBlogPortal: React.FC<PublicBlogPortalProps> = ({
                         </div>
 
                         <h4 className={`font-serif font-bold text-xl sm:text-2xl transition-colors ${
-                          isDark ? 'text-stone-100 group-hover:text-amber-300' : 'text-stone-950 group-hover:text-teal-900'
+                          isDark ? 'text-ink group-hover:text-accent-ink' : 'text-ink group-hover:text-accent-ink'
                         }`}>
                           {post.review?.revisedTitle || post.draft?.title}
                         </h4>
 
                         <p className={`text-xs sm:text-sm font-serif italic line-clamp-2 leading-relaxed ${
-                          isDark ? 'text-stone-400' : 'text-stone-600'
+                          isDark ? 'text-ink-faint' : 'text-ink-muted'
                         }`}>
                           {post.review?.revisedSubtitle || post.review?.metaDescription}
                         </p>
 
-                        <div className="pt-2 flex items-center space-x-1 text-xs font-bold text-teal-800">
-                          <span className={isDark ? 'text-amber-300' : 'text-teal-900'}>Continuar leitura</span>
-                          <span className={`group-hover:translate-x-1 transition-transform ${isDark ? 'text-amber-300' : 'text-teal-900'}`}>→</span>
+                        <div className="pt-2 flex items-center space-x-1 text-xs font-bold text-accent-ink">
+                          <span className={isDark ? 'text-accent-ink' : 'text-accent-ink'}>Continuar leitura</span>
+                          <span className={`group-hover:translate-x-1 transition-transform ${isDark ? 'text-accent-ink' : 'text-accent-ink'}`}>→</span>
                         </div>
                       </div>
 
                       {post.image?.imageUrl && (
-                        <div className="w-full sm:w-36 h-28 rounded-xl overflow-hidden bg-stone-900 shrink-0">
+                        <div className="w-full sm:w-36 h-28 rounded-control overflow-hidden bg-surface shrink-0">
                           <img
                             src={post.image.imageUrl}
                             alt={post.review?.revisedTitle || 'Thumb'}
@@ -690,12 +690,12 @@ export const PublicBlogPortal: React.FC<PublicBlogPortalProps> = ({
 
       {/* Export / Webhook Modal */}
       {showExportModal && (
-        <div className="fixed inset-0 bg-stone-950/70 backdrop-blur-xs z-50 flex items-center justify-center p-4">
-          <div className={`rounded-3xl max-w-2xl w-full p-6 sm:p-8 space-y-6 shadow-2xl border max-h-[90vh] overflow-y-auto ${
-            isDark ? 'bg-[#18191e] border-stone-800 text-stone-100' : 'bg-white border-stone-200 text-stone-900'
+        <div className="fixed inset-0 bg-canvas/70 backdrop-blur-xs z-50 flex items-center justify-center p-4">
+          <div className={`rounded-panel max-w-2xl w-full p-6 sm:p-8 space-y-6 shadow-2xl border max-h-[90vh] overflow-y-auto ${
+            isDark ? 'bg-[#18191e] border-line text-ink' : 'bg-surface border-line text-ink'
           }`}>
-            <div className={`flex items-center justify-between pb-4 border-b ${isDark ? 'border-stone-800' : 'border-stone-100'}`}>
-              <div className={`flex items-center space-x-2 font-serif font-bold text-xl ${isDark ? 'text-amber-300' : 'text-teal-950'}`}>
+            <div className={`flex items-center justify-between pb-4 border-b ${isDark ? 'border-line' : 'border-line'}`}>
+              <div className={`flex items-center space-x-2 font-serif font-bold text-xl ${isDark ? 'text-accent-ink' : 'text-accent-ink'}`}>
                 <Code2 className="w-5 h-5" />
                 <h3>Exportar ou Integrar com Site Externo</h3>
               </div>
@@ -704,26 +704,26 @@ export const PublicBlogPortal: React.FC<PublicBlogPortalProps> = ({
                   setShowExportModal(null);
                   setWebhookSimulated(false);
                 }}
-                className="text-stone-400 hover:text-stone-200 text-sm font-bold p-1 cursor-pointer"
+                className="text-ink-faint hover:text-ink text-sm font-bold p-1 cursor-pointer"
               >
                 ✕
               </button>
             </div>
 
-            <p className="text-xs sm:text-sm text-stone-400 leading-relaxed">
+            <p className="text-xs sm:text-sm text-ink-faint leading-relaxed">
               Você pode publicar este ensaio diretamente no seu site próprio (WordPress, Ghost, Webflow ou plataforma customizada) exportando em JSON, Markdown ou disparando um Webhook.
             </p>
 
             {/* Webhook Test Simulation */}
-            <div className="bg-stone-950 text-stone-100 rounded-2xl p-5 space-y-4 font-mono text-xs">
-              <div className="flex items-center justify-between text-teal-400 font-bold">
+            <div className="bg-canvas text-ink rounded-panel p-5 space-y-4 font-mono text-xs">
+              <div className="flex items-center justify-between text-accent-ink font-bold">
                 <span>POST /api/webhooks/publish-article</span>
-                <span className="text-[10px] bg-teal-950 text-teal-300 px-2 py-0.5 rounded border border-teal-800">
+                <span className="text-[10px] bg-accent text-accent-ink px-2 py-0.5 rounded border border-accent/40">
                   PAYLOAD PRONTO
                 </span>
               </div>
 
-              <pre className="bg-stone-900 p-3 rounded-xl overflow-x-auto text-amber-200 text-[11px] leading-relaxed max-h-48">
+              <pre className="bg-surface p-3 rounded-control overflow-x-auto text-accent-ink text-[11px] leading-relaxed max-h-48">
 {JSON.stringify(
   {
     title: showExportModal.review?.revisedTitle,
@@ -742,15 +742,15 @@ export const PublicBlogPortal: React.FC<PublicBlogPortalProps> = ({
 
               <button
                 onClick={() => setWebhookSimulated(true)}
-                className="w-full bg-teal-800 hover:bg-teal-700 text-white font-sans font-bold py-2.5 rounded-xl text-xs transition-all flex items-center justify-center space-x-2 cursor-pointer"
+                className="w-full bg-accent hover:bg-accent text-ink font-sans font-bold py-2.5 rounded-control text-xs transition-all flex items-center justify-center space-x-2 cursor-pointer"
               >
-                <Send className="w-3.5 h-3.5 text-amber-300" />
+                <Send className="w-3.5 h-3.5 text-accent-ink" />
                 <span>Simular Disparo de Webhook para WordPress / Ghost</span>
               </button>
 
               {webhookSimulated && (
-                <div className="bg-emerald-950 border border-emerald-800 text-emerald-300 p-3 rounded-xl flex items-center space-x-2 font-sans text-xs">
-                  <Check className="w-4 h-4 text-emerald-400 shrink-0" />
+                <div className="bg-accent border border-accent/40 text-accent-ink p-3 rounded-control flex items-center space-x-2 font-sans text-xs">
+                  <Check className="w-4 h-4 text-accent-ink shrink-0" />
                   <span><strong>Sucesso (200 OK)!</strong> Webhook disparado com sucesso. O artigo foi recebido pelo endpoint externo.</span>
                 </div>
               )}
@@ -762,7 +762,7 @@ export const PublicBlogPortal: React.FC<PublicBlogPortalProps> = ({
                   setShowExportModal(null);
                   setWebhookSimulated(false);
                 }}
-                className="bg-stone-800 hover:bg-stone-700 text-stone-200 font-bold px-5 py-2.5 rounded-xl text-xs transition-all cursor-pointer"
+                className="bg-surface-raised hover:bg-surface text-ink font-bold px-5 py-2.5 rounded-control text-xs transition-all cursor-pointer"
               >
                 Fechar
               </button>

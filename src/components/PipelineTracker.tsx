@@ -1,9 +1,12 @@
-import React from 'react';
-import { Feather, ShieldCheck, Palette, CheckCircle2, Loader2, Sparkles, AlertCircle, Heart } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import { Feather, ShieldCheck, Palette, Check, Loader2, AlertCircle } from 'lucide-react';
 import { DraftResult, ReviewResult, ImageResult } from '../types';
+import { Card, Badge } from './ui';
+
+type PipelineStatus = 'drafting' | 'reviewing' | 'generating_image' | 'completed' | 'error';
 
 interface PipelineTrackerProps {
-  status: 'drafting' | 'reviewing' | 'generating_image' | 'completed' | 'error';
+  status: PipelineStatus;
   errorMessage?: string;
   draftResult?: DraftResult;
   reviewResult?: ReviewResult;
@@ -11,6 +14,54 @@ interface PipelineTrackerProps {
   authorName?: string;
   topic: string;
 }
+
+const STEPS = [
+  {
+    id: 'drafting',
+    label: 'Rascunho',
+    agent: 'Redator',
+    icon: Feather,
+    description: 'Estrutura o texto a partir da sua voz e dos seus princípios.',
+  },
+  {
+    id: 'reviewing',
+    label: 'Revisão',
+    agent: 'Comitê clínico',
+    icon: ShieldCheck,
+    description: 'Confere ritmo, rigor conceitual e postura ética, e reescreve.',
+  },
+  {
+    id: 'generating_image',
+    label: 'Capa',
+    agent: 'Designer',
+    icon: Palette,
+    description: 'Cria a metáfora visual e gera a ilustração de capa.',
+  },
+] as const;
+
+const ORDER: Record<string, number> = { drafting: 0, reviewing: 1, generating_image: 2 };
+
+/* Cronômetro decorrido. O pipeline são três chamadas encadeadas a um modelo e
+   passa facilmente de um minuto — sem nenhuma marcação de tempo, a espera é
+   indistinguível de um travamento. */
+const useElapsed = (running: boolean) => {
+  const [seconds, setSeconds] = useState(0);
+
+  useEffect(() => {
+    if (!running) return;
+    const started = Date.now();
+    const id = setInterval(() => setSeconds(Math.floor((Date.now() - started) / 1000)), 1000);
+    return () => clearInterval(id);
+  }, [running]);
+
+  return seconds;
+};
+
+const formatElapsed = (total: number) => {
+  const m = Math.floor(total / 60);
+  const s = total % 60;
+  return m > 0 ? `${m}min ${String(s).padStart(2, '0')}s` : `${s}s`;
+};
 
 export const PipelineTracker: React.FC<PipelineTrackerProps> = ({
   status,
@@ -21,153 +72,139 @@ export const PipelineTracker: React.FC<PipelineTrackerProps> = ({
   authorName,
   topic,
 }) => {
-  const steps = [
-    {
-      id: 'drafting',
-      title: 'Etapa 1: Rascunho do Redator Principal',
-      agent: 'Redator Virtual • Visão de Mundo',
-      icon: Feather,
-      description: `Estruturando o rascunho inicial sobre "${topic}" alinhado ao seu tom de voz...`,
-      hasData: !!draftResult,
-    },
-    {
-      id: 'reviewing',
-      title: 'Etapa 2: Comitê de Especialistas & Reescrita Unificada',
-      agent: 'Des-AIzador • Guardião da Teoria • Revisor Clínico • Redator Principal',
-      icon: ShieldCheck,
-      description: 'Análise de humanização de ritmo, rigor conceitual e postura ética, com reescrita integrada e coesa pelo Redator...',
-      hasData: !!reviewResult,
-    },
-    {
-      id: 'generating_image',
-      title: 'Etapa 3: Ilustração Editorial',
-      agent: 'Designer Editorial • Capa Conceitual',
-      icon: Palette,
-      description: 'Criando metáfora visual poética e gerando imagem de capa via Gemini Imagen...',
-      hasData: !!imageResult,
-    },
-  ];
+  const isRunning = status !== 'completed' && status !== 'error';
+  const elapsed = useElapsed(isRunning);
 
-  const getStepStatus = (stepId: string) => {
-    if (status === 'error') return 'error';
+  const currentIndex = ORDER[status] ?? -1;
+  const completedCount = [draftResult, reviewResult, imageResult].filter(Boolean).length;
+  const progress = status === 'completed' ? 100 : (completedCount / STEPS.length) * 100;
+
+  const stepState = (stepId: string): 'done' | 'active' | 'pending' | 'failed' => {
+    const index = ORDER[stepId];
     if (status === 'completed') return 'done';
-
-    if (stepId === 'drafting') {
-      if (status === 'drafting') return 'active';
-      return draftResult ? 'done' : 'pending';
+    if (status === 'error') {
+      if (index < currentIndex) return 'done';
+      return index === currentIndex ? 'failed' : 'pending';
     }
-
-    if (stepId === 'reviewing') {
-      if (status === 'reviewing') return 'active';
-      if (status === 'generating_image') return 'done';
-      return 'pending';
-    }
-
-    if (stepId === 'generating_image') {
-      if (status === 'generating_image') return 'active';
-      return 'pending';
-    }
-
-    return 'pending';
+    if (index < currentIndex) return 'done';
+    return index === currentIndex ? 'active' : 'pending';
   };
 
   return (
-    <div className="bg-stone-900 rounded-3xl p-6 sm:p-8 text-white space-y-6 shadow-xl border border-stone-800">
-      
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between border-b border-stone-800 pb-4 gap-2">
-        <div>
-          <div className="flex items-center space-x-2 text-teal-400 text-xs font-semibold uppercase tracking-wider">
-            <Sparkles className="w-3.5 h-3.5" />
-            <span>Processando Artigo • Sua Equipe Virtual</span>
+    <Card className="space-y-6">
+      <div className="space-y-3">
+        <div className="flex items-start justify-between gap-4">
+          <div className="min-w-0 space-y-1">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-ink-faint">
+              {status === 'error' ? 'Produção interrompida' : 'Produzindo artigo'}
+            </p>
+            <h2 className="font-serif text-lg sm:text-xl font-bold text-ink leading-snug line-clamp-2">
+              {topic}
+            </h2>
+            {authorName && (
+              <p className="text-xs text-ink-faint">Sob a visão de {authorName}</p>
+            )}
           </div>
-          <h3 className="font-serif text-xl font-bold text-stone-100 mt-1">"{topic}"</h3>
+
+          {isRunning && (
+            <span className="text-xs tabular-nums text-ink-muted shrink-0 pt-1">
+              {formatElapsed(elapsed)}
+            </span>
+          )}
         </div>
-        <div className="text-xs text-stone-300 bg-stone-800 px-3 py-1.5 rounded-full border border-stone-700 flex items-center space-x-1.5">
-          <Heart className="w-3.5 h-3.5 text-rose-400" />
-          <span>Visão de: <strong className="text-teal-300">{authorName || 'Você'}</strong></span>
+
+        <div
+          className="h-1 w-full bg-surface-sunken rounded-full overflow-hidden"
+          role="progressbar"
+          aria-valuenow={Math.round(progress)}
+          aria-valuemin={0}
+          aria-valuemax={100}
+          aria-label="Progresso da produção"
+        >
+          <div
+            className={`h-full transition-all duration-700 ${
+              status === 'error' ? 'bg-danger' : 'bg-accent'
+            }`}
+            style={{ width: `${Math.max(progress, 4)}%` }}
+          />
         </div>
       </div>
 
-      {/* Error Display */}
       {status === 'error' && (
-        <div className="bg-rose-950/80 border border-rose-800/80 text-rose-200 p-4 rounded-2xl flex items-start space-x-3">
-          <AlertCircle className="w-5 h-5 text-rose-400 shrink-0 mt-0.5" />
-          <div className="space-y-1 text-xs sm:text-sm">
-            <p className="font-bold">Ocorreu um erro na produção do artigo:</p>
-            <p className="text-rose-300 font-mono">{errorMessage || 'Falha de comunicação com o servidor.'}</p>
+        <div className="bg-danger-soft border border-danger/30 rounded-control p-4 flex items-start gap-3">
+          <AlertCircle className="w-4 h-4 text-danger shrink-0 mt-0.5" aria-hidden="true" />
+          <div className="space-y-1 min-w-0">
+            <p className="text-sm font-medium text-ink">A produção falhou nesta etapa</p>
+            <p className="text-xs text-danger-ink break-words">
+              {errorMessage || 'Falha de comunicação com o servidor.'}
+            </p>
           </div>
         </div>
       )}
 
-      {/* Step Progress List */}
-      <div className="space-y-4">
-        {steps.map((step) => {
-          const stepState = getStepStatus(step.id);
+      <ol className="space-y-2">
+        {STEPS.map((step) => {
+          const state = stepState(step.id);
           const Icon = step.icon;
 
           return (
-            <div
+            <li
               key={step.id}
-              className={`p-4 sm:p-5 rounded-2xl border transition-all flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 ${
-                stepState === 'active'
-                  ? 'border-teal-500/80 bg-teal-950/40 text-stone-100 shadow-lg ring-1 ring-teal-500/30'
-                  : stepState === 'done'
-                  ? 'border-emerald-800/60 bg-emerald-950/20 text-stone-300'
-                  : 'border-stone-800 bg-stone-900/50 text-stone-500 opacity-60'
+              className={`flex items-start gap-3.5 p-3.5 rounded-control border transition-colors ${
+                state === 'active'
+                  ? 'border-accent/40 bg-accent-soft/40'
+                  : state === 'failed'
+                  ? 'border-danger/40 bg-danger-soft/40'
+                  : 'border-line bg-surface-sunken/40'
               }`}
             >
-              <div className="flex items-start space-x-3 sm:space-x-4">
-                <div
-                  className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${
-                    stepState === 'active'
-                      ? 'bg-teal-500 text-stone-950 font-bold animate-pulse'
-                      : stepState === 'done'
-                      ? 'bg-emerald-600 text-white'
-                      : 'bg-stone-800 text-stone-500'
+              <div
+                className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${
+                  state === 'done'
+                    ? 'bg-success-soft text-success-ink'
+                    : state === 'active'
+                    ? 'bg-accent text-canvas'
+                    : state === 'failed'
+                    ? 'bg-danger-soft text-danger-ink'
+                    : 'bg-surface-raised text-ink-faint'
+                }`}
+              >
+                {state === 'active' ? (
+                  <Loader2 className="w-4 h-4 animate-spin" aria-hidden="true" />
+                ) : state === 'done' ? (
+                  <Check className="w-4 h-4" aria-hidden="true" />
+                ) : state === 'failed' ? (
+                  <AlertCircle className="w-4 h-4" aria-hidden="true" />
+                ) : (
+                  <Icon className="w-4 h-4" aria-hidden="true" />
+                )}
+              </div>
+
+              <div className="min-w-0 flex-1 space-y-0.5">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <h3
+                    className={`text-sm font-medium ${
+                      state === 'pending' ? 'text-ink-faint' : 'text-ink'
+                    }`}
+                  >
+                    {step.label}
+                  </h3>
+                  <span className="text-[11px] text-ink-faint">{step.agent}</span>
+                  {state === 'active' && <Badge tone="accent">em andamento</Badge>}
+                  {state === 'done' && <Badge tone="success">concluído</Badge>}
+                </div>
+                <p
+                  className={`text-xs leading-relaxed ${
+                    state === 'pending' ? 'text-ink-faint' : 'text-ink-muted'
                   }`}
                 >
-                  {stepState === 'active' ? (
-                    <Loader2 className="w-5 h-5 animate-spin" />
-                  ) : stepState === 'done' ? (
-                    <CheckCircle2 className="w-5 h-5" />
-                  ) : (
-                    <Icon className="w-5 h-5" />
-                  )}
-                </div>
-
-                <div className="space-y-1">
-                  <div className="flex items-center space-x-2">
-                    <span className="text-xs font-mono font-semibold uppercase tracking-wider text-teal-400">{step.agent}</span>
-                  </div>
-                  <h4 className="font-bold text-sm sm:text-base text-stone-100">{step.title}</h4>
-                  <p className="text-xs text-stone-400">{step.description}</p>
-                </div>
+                  {step.description}
+                </p>
               </div>
-
-              {/* Status Indicator Pill */}
-              <div className="shrink-0 text-xs font-semibold px-3 py-1 rounded-full border">
-                {stepState === 'active' && (
-                  <span className="text-teal-300 border-teal-500/50 bg-teal-900/60 flex items-center space-x-1.5">
-                    <span className="w-2 h-2 rounded-full bg-teal-400 animate-ping"></span>
-                    <span>Em Andamento...</span>
-                  </span>
-                )}
-                {stepState === 'done' && (
-                  <span className="text-emerald-300 border-emerald-700/50 bg-emerald-950/60 flex items-center space-x-1">
-                    <CheckCircle2 className="w-3.5 h-3.5" />
-                    <span>Concluído</span>
-                  </span>
-                )}
-                {stepState === 'pending' && (
-                  <span className="text-stone-500 border-stone-800 bg-stone-800/40">Aguardando</span>
-                )}
-              </div>
-            </div>
+            </li>
           );
         })}
-      </div>
-
-    </div>
+      </ol>
+    </Card>
   );
 };

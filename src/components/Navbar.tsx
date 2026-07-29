@@ -1,243 +1,181 @@
 import React from 'react';
-import { PenTool, Heart, BookOpen, Users, Brain, Globe, Sun, Moon } from 'lucide-react';
+import {
+  PenLine,
+  Library,
+  Compass,
+  Loader2,
+  Cloud,
+  CloudOff,
+  HardDrive,
+  RefreshCw,
+} from 'lucide-react';
+
+export type SyncState = 'local' | 'syncing' | 'synced' | 'offline';
+
+/* Onde os textos estão guardados neste momento. Sem isso o usuário não tem como
+   saber se o conteúdo existe só no navegador ou já foi para o banco. */
+const SYNC_LABELS: Record<SyncState, { icon: React.ComponentType<{ className?: string }>; label: string; title: string; className: string }> = {
+  local: {
+    icon: HardDrive,
+    label: 'Só neste navegador',
+    title:
+      'Supabase não configurado. Os artigos existem apenas neste navegador e serão perdidos se você limpar os dados de navegação.',
+    className: 'text-ink-faint',
+  },
+  syncing: {
+    icon: RefreshCw,
+    label: 'Sincronizando',
+    title: 'Enviando alterações para o Supabase.',
+    className: 'text-ink-muted',
+  },
+  synced: {
+    icon: Cloud,
+    label: 'Salvo na nuvem',
+    title: 'Tudo sincronizado com o Supabase.',
+    className: 'text-accent-ink',
+  },
+  offline: {
+    icon: CloudOff,
+    label: 'Sem conexão',
+    title:
+      'Não foi possível falar com o Supabase. As alterações estão salvas neste navegador e sobem quando a conexão voltar.',
+    className: 'text-danger-ink',
+  },
+};
+
+/* Três seções em vez de cinco. "Equipe" era documentação e "Portal Público"
+   era uma forma de ver a biblioteca — nenhum dos dois é um destino de
+   trabalho, então ambos viraram sub-visões. */
+export type SectionId = 'escrever' | 'biblioteca' | 'visao';
+
+interface NavItem {
+  id: SectionId;
+  label: string;
+  icon: React.ComponentType<{ className?: string }>;
+  hint: string;
+}
+
+const NAV_ITEMS: NavItem[] = [
+  { id: 'escrever', label: 'Escrever', icon: PenLine, hint: 'Criar um novo artigo' },
+  { id: 'biblioteca', label: 'Biblioteca', icon: Library, hint: 'Artigos publicados e rascunhos' },
+  { id: 'visao', label: 'Minha visão', icon: Compass, hint: 'Voz, princípios e equipe virtual' },
+];
 
 interface NavbarProps {
-  activeTab: 'create' | 'manifesto' | 'history' | 'team' | 'blog';
-  setActiveTab: (tab: 'create' | 'manifesto' | 'history' | 'team' | 'blog') => void;
+  section: SectionId;
+  onNavigate: (section: SectionId) => void;
   savedCount: number;
-  theme: 'light' | 'dark';
-  onToggleTheme: () => void;
+  isGenerating: boolean;
+  syncState: SyncState;
 }
 
 export const Navbar: React.FC<NavbarProps> = ({
-  activeTab,
-  setActiveTab,
+  section,
+  onNavigate,
   savedCount,
-  theme,
-  onToggleTheme,
-}) => {
-  const isDark = theme === 'dark';
+  isGenerating,
+  syncState,
+}) => (
+  <>
+    <a
+      href="#conteudo"
+      className="sr-only focus:not-sr-only focus:absolute focus:top-3 focus:left-3 focus:z-50 focus:bg-surface-raised focus:text-ink focus:px-3 focus:py-2 focus:rounded-control focus:border focus:border-line"
+    >
+      Pular para o conteúdo
+    </a>
 
-  return (
-    <>
-      {/* Top Header */}
-      <header className={`sticky top-0 z-40 transition-colors duration-300 border-b backdrop-blur-md shadow-xs ${
-        isDark ? 'bg-[#141519]/95 border-stone-800/80 text-stone-100' : 'bg-white/95 border-stone-200/80 text-stone-900'
-      }`}>
-        <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-14 sm:h-16">
-            
-            {/* Logo & Branding */}
-            <div className="flex items-center space-x-2.5 cursor-pointer" onClick={() => setActiveTab('create')}>
-              <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-br from-teal-700 to-emerald-800 flex items-center justify-center text-white shadow-md shadow-teal-900/20 shrink-0">
-                <Brain className="w-4 h-4 sm:w-5 sm:h-5 text-amber-300" />
-              </div>
-              <div className="flex flex-col justify-center">
-                <div className="flex items-center space-x-1.5">
-                  <span className={`font-serif font-bold text-lg sm:text-xl tracking-tight leading-tight ${
-                    isDark ? 'text-stone-100' : 'text-stone-900'
-                  }`}>
-                    PsicoContent
-                  </span>
-                  <span className="bg-teal-800 text-amber-300 text-[9px] sm:text-[10px] font-bold px-1.5 py-0.5 rounded-full uppercase tracking-wider">Studio</span>
-                </div>
-                <div className={`flex items-center space-x-2 text-[10px] hidden md:flex ${
-                  isDark ? 'text-stone-400' : 'text-stone-500'
-                }`}>
-                  <span>Visão de Mundo • Artigos & Imagens</span>
-                  <span className={`font-medium px-1.5 py-0.2 rounded-md flex items-center space-x-1 border ${
-                    isDark ? 'bg-stone-900 text-emerald-400 border-emerald-900/50' : 'bg-emerald-50 text-emerald-800 border-emerald-200/60'
-                  }`}>
-                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                    <span>Salvamento Automático</span>
-                  </span>
-                </div>
-              </div>
-            </div>
+    <header className="sticky top-0 z-40 bg-canvas/85 backdrop-blur-md border-b border-line">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex items-center justify-between h-16 gap-4">
+          <button
+            onClick={() => onNavigate('escrever')}
+            className="flex items-baseline gap-2 cursor-pointer text-left shrink-0"
+          >
+            <span className="font-serif text-lg font-bold tracking-tight text-ink">
+              PsicoContent
+            </span>
+            <span className="text-[10px] font-medium uppercase tracking-[0.16em] text-ink-faint hidden sm:inline">
+              Studio
+            </span>
+          </button>
 
-            {/* Desktop / Tablet Navigation Links */}
-            <nav className="hidden md:flex items-center space-x-1 sm:space-x-2">
-              <button
-                onClick={() => setActiveTab('create')}
-                className={`flex items-center space-x-1.5 px-3 py-2 rounded-xl text-xs sm:text-sm font-medium transition-all cursor-pointer min-h-[40px] ${
-                  activeTab === 'create'
-                    ? 'bg-teal-800 text-white shadow-md font-semibold'
-                    : isDark ? 'text-stone-300 hover:text-stone-100 hover:bg-stone-800' : 'text-stone-700 hover:text-stone-900 hover:bg-stone-100'
-                }`}
-              >
-                <PenTool className="w-4 h-4 text-amber-300" />
-                <span>Criar Artigo</span>
-              </button>
+          <nav aria-label="Seções" className="hidden md:flex items-center gap-1">
+            {NAV_ITEMS.map(({ id, label, icon: Icon, hint }) => {
+              const active = section === id;
+              return (
+                <button
+                  key={id}
+                  onClick={() => onNavigate(id)}
+                  aria-current={active ? 'page' : undefined}
+                  title={hint}
+                  className={`inline-flex items-center gap-2 px-3 py-2 rounded-control text-sm transition-colors cursor-pointer ${
+                    active
+                      ? 'bg-surface-raised text-ink font-medium'
+                      : 'text-ink-muted hover:text-ink hover:bg-surface'
+                  }`}
+                >
+                  <Icon className="w-4 h-4 shrink-0" aria-hidden="true" />
+                  <span>{label}</span>
+                  {id === 'biblioteca' && savedCount > 0 && (
+                    <span className="text-[11px] tabular-nums text-ink-faint">
+                      {savedCount}
+                    </span>
+                  )}
+                </button>
+              );
+            })}
+          </nav>
 
-              <button
-                onClick={() => setActiveTab('manifesto')}
-                className={`flex items-center space-x-1.5 px-3 py-2 rounded-xl text-xs sm:text-sm font-medium transition-all cursor-pointer min-h-[40px] ${
-                  activeTab === 'manifesto'
-                    ? 'bg-teal-800 text-white shadow-md font-semibold'
-                    : isDark ? 'text-stone-300 hover:text-stone-100 hover:bg-stone-800' : 'text-stone-700 hover:text-stone-900 hover:bg-stone-100'
-                }`}
-              >
-                <Heart className="w-4 h-4 text-rose-400" />
-                <span>Minha Visão</span>
-              </button>
-
-              <button
-                onClick={() => setActiveTab('history')}
-                className={`flex items-center space-x-1.5 px-3 py-2 rounded-xl text-xs sm:text-sm font-medium transition-all relative cursor-pointer min-h-[40px] ${
-                  activeTab === 'history'
-                    ? 'bg-teal-800 text-white shadow-md font-semibold'
-                    : isDark ? 'text-stone-300 hover:text-stone-100 hover:bg-stone-800' : 'text-stone-700 hover:text-stone-900 hover:bg-stone-100'
-                }`}
-              >
-                <BookOpen className="w-4 h-4 text-indigo-400" />
-                <span>Histórico</span>
-                {savedCount > 0 && (
-                  <span className="ml-1 bg-amber-400 text-stone-900 text-xs font-bold px-1.5 py-0.2 rounded-full">
-                    {savedCount}
-                  </span>
-                )}
-              </button>
-
-              <button
-                onClick={() => setActiveTab('team')}
-                className={`flex items-center space-x-1.5 px-3 py-2 rounded-xl text-xs sm:text-sm font-medium transition-all cursor-pointer min-h-[40px] ${
-                  activeTab === 'team'
-                    ? 'bg-teal-800 text-white shadow-md font-semibold'
-                    : isDark ? 'text-stone-300 hover:text-stone-100 hover:bg-stone-800' : 'text-stone-700 hover:text-stone-900 hover:bg-stone-100'
-                }`}
-              >
-                <Users className="w-4 h-4 text-teal-300" />
-                <span>Equipe</span>
-              </button>
-
-              <button
-                onClick={() => setActiveTab('blog')}
-                className={`flex items-center space-x-1.5 px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer min-h-[40px] ${
-                  activeTab === 'blog'
-                    ? 'bg-amber-400 text-stone-950 shadow-md'
-                    : isDark ? 'bg-stone-800 text-amber-300 hover:bg-stone-700' : 'bg-stone-900 text-stone-100 hover:bg-stone-800'
-                }`}
-              >
-                <Globe className="w-4 h-4 text-teal-300" />
-                <span>Portal Público</span>
-                <span className="bg-emerald-500 text-stone-950 text-[9px] font-extrabold px-1.5 py-0.2 rounded-full uppercase">
-                  Ao Vivo
-                </span>
-              </button>
-
-              {/* Theme Switcher Button */}
-              <button
-                onClick={onToggleTheme}
-                className={`ml-2 p-2 rounded-xl border transition-all cursor-pointer flex items-center justify-center ${
-                  isDark
-                    ? 'bg-stone-800 text-amber-300 border-stone-700 hover:bg-stone-700'
-                    : 'bg-stone-100 text-stone-800 border-stone-200 hover:bg-stone-200'
-                }`}
-                title={isDark ? 'Alternar para Modo Claro Minimalista' : 'Alternar para Modo Escuro Noturno'}
-              >
-                {isDark ? <Sun className="w-4 h-4 text-amber-300" /> : <Moon className="w-4 h-4 text-indigo-900" />}
-              </button>
-            </nav>
-
-            {/* Mobile Header Right Controls */}
-            <div className="flex md:hidden items-center space-x-2">
-              <button
-                onClick={onToggleTheme}
-                className={`p-1.5 rounded-lg border transition-all ${
-                  isDark ? 'bg-stone-800 text-amber-300 border-stone-700' : 'bg-stone-100 text-stone-800 border-stone-200'
-                }`}
-              >
-                {isDark ? <Sun className="w-4 h-4 text-amber-300" /> : <Moon className="w-4 h-4 text-indigo-900" />}
-              </button>
-
-              <span className={`text-xs font-medium px-2.5 py-1 rounded-full border ${
-                isDark ? 'bg-stone-800 text-stone-200 border-stone-700' : 'bg-stone-100 text-stone-700 border-stone-200'
-              }`}>
-                {activeTab === 'create' && '✍️ Criar'}
-                {activeTab === 'manifesto' && '🤍 Visão'}
-                {activeTab === 'history' && `📚 Histórico (${savedCount})`}
-                {activeTab === 'team' && '👥 Equipe'}
-                {activeTab === 'blog' && '🌐 Portal'}
-              </span>
-            </div>
-
-          </div>
-        </div>
-      </header>
-
-      {/* Mobile Fixed Bottom Navigation Bar */}
-      <nav className={`md:hidden fixed bottom-0 left-0 right-0 border-t z-50 px-2 py-1.5 flex items-center justify-around transition-colors duration-300 ${
-        isDark ? 'bg-[#141519]/95 backdrop-blur-md border-stone-800 text-stone-200 shadow-xl' : 'bg-white/95 backdrop-blur-md border-stone-200 text-stone-700 shadow-lg'
-      }`}>
-        <button
-          onClick={() => setActiveTab('create')}
-          className={`flex flex-col items-center justify-center py-1 px-2.5 rounded-xl min-w-[56px] min-h-[48px] transition-all cursor-pointer ${
-            activeTab === 'create'
-              ? isDark ? 'text-amber-300 font-bold bg-stone-800' : 'text-teal-800 font-bold bg-teal-50'
-              : 'text-stone-400 hover:text-stone-200'
-          }`}
-        >
-          <PenTool className={`w-5 h-5 ${activeTab === 'create' ? 'text-amber-400 scale-110' : ''}`} />
-          <span className="text-[10px] mt-0.5 tracking-tight">Criar</span>
-        </button>
-
-        <button
-          onClick={() => setActiveTab('manifesto')}
-          className={`flex flex-col items-center justify-center py-1 px-2.5 rounded-xl min-w-[56px] min-h-[48px] transition-all cursor-pointer ${
-            activeTab === 'manifesto'
-              ? isDark ? 'text-amber-300 font-bold bg-stone-800' : 'text-teal-800 font-bold bg-teal-50'
-              : 'text-stone-400 hover:text-stone-200'
-          }`}
-        >
-          <Heart className={`w-5 h-5 ${activeTab === 'manifesto' ? 'text-rose-400 scale-110' : ''}`} />
-          <span className="text-[10px] mt-0.5 tracking-tight">Visão</span>
-        </button>
-
-        <button
-          onClick={() => setActiveTab('history')}
-          className={`flex flex-col items-center justify-center py-1 px-2.5 rounded-xl min-w-[56px] min-h-[48px] transition-all relative cursor-pointer ${
-            activeTab === 'history'
-              ? isDark ? 'text-amber-300 font-bold bg-stone-800' : 'text-teal-800 font-bold bg-teal-50'
-              : 'text-stone-400 hover:text-stone-200'
-          }`}
-        >
-          <div className="relative">
-            <BookOpen className={`w-5 h-5 ${activeTab === 'history' ? 'text-indigo-400 scale-110' : ''}`} />
-            {savedCount > 0 && (
-              <span className="absolute -top-1.5 -right-2 bg-amber-500 text-stone-950 text-[9px] font-extrabold px-1 rounded-full min-w-[14px] text-center">
-                {savedCount}
+          {/* O estado de geração precisa ser visível de qualquer seção: o
+              pipeline leva minutos e o usuário costuma navegar enquanto espera. */}
+          <div className="flex items-center gap-3 shrink-0" aria-live="polite">
+            {isGenerating && (
+              <span className="inline-flex items-center gap-2 text-xs text-accent-ink bg-accent-soft border border-accent/30 px-2.5 py-1 rounded-full">
+                <Loader2 className="w-3.5 h-3.5 animate-spin" aria-hidden="true" />
+                <span className="hidden sm:inline">Produzindo artigo</span>
               </span>
             )}
+
+            {(() => {
+              const { icon: Icon, label, title, className } = SYNC_LABELS[syncState];
+              return (
+                <span
+                  title={title}
+                  className={`inline-flex items-center gap-1.5 text-[11px] ${className}`}
+                >
+                  <Icon
+                    className={`w-3.5 h-3.5 ${syncState === 'syncing' ? 'animate-spin' : ''}`}
+                    aria-hidden="true"
+                  />
+                  <span className="hidden lg:inline">{label}</span>
+                </span>
+              );
+            })()}
           </div>
-          <span className="text-[10px] mt-0.5 tracking-tight">Histórico</span>
-        </button>
+        </div>
+      </div>
+    </header>
 
-        <button
-          onClick={() => setActiveTab('team')}
-          className={`flex flex-col items-center justify-center py-1 px-2.5 rounded-xl min-w-[56px] min-h-[48px] transition-all cursor-pointer ${
-            activeTab === 'team'
-              ? isDark ? 'text-amber-300 font-bold bg-stone-800' : 'text-teal-800 font-bold bg-teal-50'
-              : 'text-stone-400 hover:text-stone-200'
-          }`}
-        >
-          <Users className={`w-5 h-5 ${activeTab === 'team' ? 'text-teal-400 scale-110' : ''}`} />
-          <span className="text-[10px] mt-0.5 tracking-tight">Equipe</span>
-        </button>
-
-        <button
-          onClick={() => setActiveTab('blog')}
-          className={`flex flex-col items-center justify-center py-1 px-2.5 rounded-xl min-w-[56px] min-h-[48px] transition-all cursor-pointer ${
-            activeTab === 'blog'
-              ? 'text-stone-950 font-bold bg-amber-400'
-              : 'text-teal-400 font-medium hover:text-teal-300'
-          }`}
-        >
-          <Globe className={`w-5 h-5 ${activeTab === 'blog' ? 'text-stone-900 scale-110' : ''}`} />
-          <span className="text-[10px] mt-0.5 tracking-tight font-bold">Portal</span>
-        </button>
-      </nav>
-    </>
-  );
-};
-
-
+    <nav
+      aria-label="Seções"
+      className="md:hidden fixed bottom-0 inset-x-0 z-50 bg-canvas/95 backdrop-blur-md border-t border-line flex items-stretch"
+    >
+      {NAV_ITEMS.map(({ id, label, icon: Icon }) => {
+        const active = section === id;
+        return (
+          <button
+            key={id}
+            onClick={() => onNavigate(id)}
+            aria-current={active ? 'page' : undefined}
+            className={`flex-1 flex flex-col items-center justify-center gap-1 py-2.5 min-h-[56px] transition-colors cursor-pointer ${
+              active ? 'text-accent-ink' : 'text-ink-faint'
+            }`}
+          >
+            <Icon className="w-5 h-5" aria-hidden="true" />
+            <span className="text-[10px] font-medium">{label}</span>
+          </button>
+        );
+      })}
+    </nav>
+  </>
+);
