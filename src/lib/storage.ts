@@ -3,6 +3,7 @@ import { ArticlePost, UserManifesto, AgentPrompts } from '../types';
 const POSTS_KEY = 'psicocontent_posts_v2';
 const MANIFESTO_KEY = 'psicocontent_user_manifesto_v2';
 const PROMPTS_KEY = 'psicocontent_agent_prompts_v2';
+const OPEN_POST_KEY = 'psicocontent_open_post_id';
 
 export const DEFAULT_USER_MANIFESTO: UserManifesto = {
   authorName: 'Psicólogo Clínico',
@@ -128,22 +129,63 @@ export function getStoredPosts(): ArticlePost[] {
   }
 }
 
+/* Sinaliza se a escrita realmente chegou ao disco. Antes o erro era engolido e
+   a função devolvia a lista atualizada de qualquer jeito — a interface exibia
+   "salvo automaticamente" enquanto nada tinha sido persistido, e o texto sumia
+   no reload seguinte. */
+export class StorageWriteError extends Error {
+  constructor(cause: unknown) {
+    super(
+      cause instanceof Error && cause.name === 'QuotaExceededError'
+        ? 'O armazenamento local do navegador está cheio. Exclua artigos antigos da Biblioteca para liberar espaço.'
+        : 'O navegador recusou a gravação. Em janela anônima ou com cookies bloqueados o armazenamento local fica indisponível.'
+    );
+    this.name = 'StorageWriteError';
+  }
+}
+
 export function savePostToStorage(post: ArticlePost): ArticlePost[] {
   const current = getStoredPosts();
   const index = current.findIndex((p) => p.id === post.id);
-  let updated: ArticlePost[];
-  if (index >= 0) {
-    updated = [...current];
-    updated[index] = post;
-  } else {
-    updated = [post, ...current];
-  }
+  const updated = index >= 0 ? current.map((p, i) => (i === index ? post : p)) : [post, ...current];
+
   try {
     localStorage.setItem(POSTS_KEY, JSON.stringify(updated));
   } catch (e) {
     console.error('Error saving post to storage:', e);
+    throw new StorageWriteError(e);
   }
   return updated;
+}
+
+/* Substitui o espelho local inteiro pelo que veio do servidor. */
+export function replaceAllPosts(posts: ArticlePost[]): ArticlePost[] {
+  try {
+    localStorage.setItem(POSTS_KEY, JSON.stringify(posts));
+  } catch (e) {
+    console.error('Error mirroring posts to storage:', e);
+    throw new StorageWriteError(e);
+  }
+  return posts;
+}
+
+/* Artigo aberto no momento, para que atualizar a página não devolva o usuário
+   a um formulário em branco. Guarda só o id — o conteúdo já vive em POSTS_KEY. */
+export function getOpenPostId(): string | null {
+  try {
+    return localStorage.getItem(OPEN_POST_KEY);
+  } catch {
+    return null;
+  }
+}
+
+export function setOpenPostId(id: string | null): void {
+  try {
+    if (id) localStorage.setItem(OPEN_POST_KEY, id);
+    else localStorage.removeItem(OPEN_POST_KEY);
+  } catch (e) {
+    console.error('Error persisting open post id:', e);
+  }
 }
 
 export function deletePostFromStorage(id: string): ArticlePost[] {
