@@ -17,7 +17,7 @@ export const VirtualTeamInfo: React.FC<VirtualTeamInfoProps> = ({
       <div className="bg-surface-raised rounded-panel p-8 sm:p-10 text-ink shadow-xl relative overflow-hidden">
         <div className="absolute -right-10 -bottom-10 w-72 h-72 bg-accent/10 rounded-full blur-3xl pointer-events-none"></div>
         <div className="relative z-10 max-w-2xl space-y-4">
-          <div className="inline-flex items-center space-x-2 bg-accent/60 backdrop-blur-md px-3 py-1 rounded-full text-xs font-medium text-accent-ink border border-accent/40/50">
+          <div className="inline-flex items-center space-x-2 bg-accent/60 backdrop-blur-md px-3 py-1 rounded-full text-xs font-medium text-accent-ink border border-accent/50">
             <Sparkles className="w-3.5 h-3.5 text-accent-ink" />
             <span>Sua Equipe Editorial Exclusiva (5 Agentes)</span>
           </div>
@@ -30,7 +30,7 @@ export const VirtualTeamInfo: React.FC<VirtualTeamInfoProps> = ({
           <div className="pt-2 flex flex-wrap gap-3">
             <button
               onClick={onStartCreate}
-              className="px-5 py-2.5 bg-accent hover:bg-accent text-ink font-semibold text-sm rounded-control transition-all shadow-md flex items-center space-x-2 cursor-pointer"
+              className="px-5 py-2.5 bg-accent hover:bg-accent text-canvas font-semibold text-sm rounded-control transition-all shadow-md flex items-center space-x-2 cursor-pointer"
             >
               <span>Criar Artigo Agora</span>
               <ArrowRight className="w-4 h-4" />
@@ -244,7 +244,7 @@ export const VirtualTeamInfo: React.FC<VirtualTeamInfoProps> = ({
         </div>
         <button
           onClick={onCustomizePrompts}
-          className="px-4 py-2 bg-accent hover:bg-accent text-ink font-medium text-xs sm:text-sm rounded-control shrink-0 transition-all shadow-xs cursor-pointer"
+          className="px-4 py-2 bg-accent hover:bg-accent text-canvas font-medium text-xs sm:text-sm rounded-control shrink-0 transition-all shadow-xs cursor-pointer"
         >
           Minha Visão de Mundo
         </button>

@@ -36,6 +36,31 @@ import {
 } from 'lucide-react';
 import { VISUAL_STYLES } from '../data/presetApproaches';
 
+/* Temas do modo leitura. Cada um é uma superfície real e distinta: papel claro,
+   sépia e noturno. Os valores são fixos de propósito — não são tokens da
+   interface, são preferências de leitura do texto. */
+const READER_THEMES = [
+  { id: 'dark' as const, label: 'Noturno' },
+  { id: 'sepia' as const, label: 'Sépia' },
+  { id: 'light' as const, label: 'Papel' },
+];
+
+const READER_SURFACES: Record<'light' | 'sepia' | 'dark', string> = {
+  light: 'bg-[#faf9f6] text-[#26231f] border-[#e2ded4]',
+  sepia: 'bg-[#f6ecd8] text-[#3a2e22] border-[#e0d2b4]',
+  dark: 'bg-[#15161a] text-[#dedbd5] border-line',
+};
+
+/* Citação destacada por tema. Dentro do artigo o texto herda a cor da
+   superfície e a hierarquia vem de opacidade — usar os tokens da interface
+   (claros, feitos para fundo escuro) deixaria o texto invisível em Papel e
+   Sépia. */
+const READER_QUOTES: Record<'light' | 'sepia' | 'dark', string> = {
+  light: 'bg-[#f0eee7] border-[#b9b2a3]',
+  sepia: 'bg-[#efe2c6] border-[#c4ac7c]',
+  dark: 'bg-white/[0.04] border-accent/50',
+};
+
 interface ArticleResultViewProps {
   post: ArticlePost;
   onPostUpdated: (updatedPost: ArticlePost) => void;
@@ -64,7 +89,9 @@ export const ArticleResultView: React.FC<ArticleResultViewProps> = ({
 
   // Clean Reader Customization state
   const [readerFontSize, setReaderFontSize] = useState<'sm' | 'base' | 'lg'>('base');
-  const [readerTheme, setReaderTheme] = useState<'light' | 'sepia' | 'dark'>('light');
+  /* Padrão noturno, para o texto não explodir em branco dentro de um estúdio
+     escuro. "Papel" continua a um clique de distância. */
+  const [readerTheme, setReaderTheme] = useState<'light' | 'sepia' | 'dark'>('dark');
 
   // Edit mode for markdown / direct keyboard editing
   const [isEditingText, setIsEditingText] = useState(false);
@@ -584,7 +611,7 @@ export const ArticleResultView: React.FC<ArticleResultViewProps> = ({
         <div className="flex flex-wrap items-center gap-2 w-full md:w-auto">
           <button
             onClick={handleDownloadPDF}
-            className="flex-1 md:flex-none px-3.5 py-2 bg-accent hover:bg-accent text-ink text-xs font-semibold rounded-control flex items-center justify-center space-x-1.5 shadow-xs transition-all cursor-pointer min-h-[40px]"
+            className="flex-1 md:flex-none px-3.5 py-2 bg-accent hover:bg-accent text-canvas text-xs font-semibold rounded-control flex items-center justify-center space-x-1.5 shadow-xs transition-all cursor-pointer min-h-[40px]"
             title="Exportar documento PDF pronto para impressão ou envio a pacientes"
           >
             <Printer className="w-4 h-4 text-accent-ink" />
@@ -620,7 +647,7 @@ export const ArticleResultView: React.FC<ArticleResultViewProps> = ({
 
           <button
             onClick={downloadArticle}
-            className="w-full sm:w-auto px-3.5 py-2 bg-accent hover:bg-accent text-ink text-xs font-semibold rounded-control flex items-center justify-center space-x-1.5 shadow-sm transition-all cursor-pointer min-h-[40px]"
+            className="w-full sm:w-auto px-3.5 py-2 bg-accent hover:bg-accent text-canvas text-xs font-semibold rounded-control flex items-center justify-center space-x-1.5 shadow-sm transition-all cursor-pointer min-h-[40px]"
           >
             <Download className="w-4 h-4" />
             <span>Baixar .MD</span>
@@ -717,7 +744,7 @@ export const ArticleResultView: React.FC<ArticleResultViewProps> = ({
                   onClick={() => setViewingVersion('revised')}
                   className={`px-3 py-1 rounded-control font-semibold transition-all cursor-pointer ${
                     viewingVersion === 'revised'
-                      ? 'bg-accent text-ink shadow-xs'
+                      ? 'bg-accent text-canvas shadow-xs'
                       : 'text-ink-muted hover:text-ink'
                   }`}
                 >
@@ -727,7 +754,7 @@ export const ArticleResultView: React.FC<ArticleResultViewProps> = ({
                   onClick={() => setViewingVersion('draft')}
                   className={`px-3 py-1 rounded-control font-semibold transition-all cursor-pointer ${
                     viewingVersion === 'draft'
-                      ? 'bg-accent text-ink shadow-xs'
+                      ? 'bg-accent text-canvas shadow-xs'
                       : 'text-ink-muted hover:text-ink'
                   }`}
                 >
@@ -756,7 +783,7 @@ export const ArticleResultView: React.FC<ArticleResultViewProps> = ({
               </div>
               <button
                 onClick={handleRestoreDraftAsRevised}
-                className="px-3.5 py-1.5 bg-accent hover:bg-accent text-ink font-bold rounded-control flex items-center space-x-1 transition-all shadow-xs shrink-0 cursor-pointer"
+                className="px-3.5 py-1.5 bg-accent hover:bg-accent text-canvas font-bold rounded-control flex items-center space-x-1 transition-all shadow-xs shrink-0 cursor-pointer"
               >
                 <RotateCcw className="w-3.5 h-3.5" />
                 <span>Restaurar Rascunho como Texto Ativo</span>
@@ -775,7 +802,7 @@ export const ArticleResultView: React.FC<ArticleResultViewProps> = ({
                 <div className="flex items-center space-x-2">
                   <button
                     onClick={handleSaveEdits}
-                    className="px-4 py-1.5 bg-accent hover:bg-accent text-ink font-bold text-xs rounded-control flex items-center space-x-1 transition-all cursor-pointer shadow-xs"
+                    className="px-4 py-1.5 bg-accent hover:bg-accent text-canvas font-bold text-xs rounded-control flex items-center space-x-1 transition-all cursor-pointer shadow-xs"
                   >
                     <Save className="w-3.5 h-3.5 text-accent-ink" />
                     <span>Salvar Alterações</span>
@@ -886,7 +913,7 @@ export const ArticleResultView: React.FC<ArticleResultViewProps> = ({
                   />
                   <button
                     onClick={handleAddTag}
-                    className="px-2 py-0.5 bg-accent text-ink font-bold text-xs rounded-control cursor-pointer"
+                    className="px-2 py-0.5 bg-accent text-canvas font-bold text-xs rounded-control cursor-pointer"
                   >
                     OK
                   </button>
@@ -960,7 +987,7 @@ export const ArticleResultView: React.FC<ArticleResultViewProps> = ({
                   <button
                     onClick={() => onRegenerateImage(selectedStyleForRegen)}
                     disabled={isRegeneratingImage}
-                    className="px-3.5 py-1.5 bg-accent hover:bg-accent text-ink font-semibold rounded-control flex items-center space-x-1.5 transition-all shadow-xs disabled:opacity-50 cursor-pointer min-h-[36px]"
+                    className="px-3.5 py-1.5 bg-accent hover:bg-accent text-canvas font-semibold rounded-control flex items-center space-x-1.5 transition-all shadow-xs disabled:opacity-50 cursor-pointer min-h-[36px]"
                   >
                     <RefreshCw className={`w-3.5 h-3.5 ${isRegeneratingImage ? 'animate-spin' : ''}`} />
                     <span>{isRegeneratingImage ? 'Gerando Imagem...' : 'Regerar Imagem'}</span>
@@ -972,7 +999,7 @@ export const ArticleResultView: React.FC<ArticleResultViewProps> = ({
 
           {/* Fixed Floating Bottom Interactive Selection Correction Dock */}
           {(selectedSnippet || selectionMessage) && (
-            <div className="fixed bottom-20 md:bottom-6 left-1/2 -translate-x-1/2 z-50 w-[94%] max-w-2xl bg-surface-raised text-ink rounded-panel p-4 sm:p-5 shadow-2xl border border-accent/40/50 space-y-3.5 animate-fade-in backdrop-blur-md">
+            <div className="fixed bottom-20 md:bottom-6 left-1/2 -translate-x-1/2 z-50 w-[94%] max-w-2xl bg-surface-raised text-ink rounded-panel p-4 sm:p-5 shadow-2xl border border-accent/50 space-y-3.5 animate-fade-in backdrop-blur-md">
               <div className="flex items-center justify-between border-b border-line pb-2.5">
                 <div className="flex items-center space-x-2 text-accent-ink font-bold text-xs sm:text-sm uppercase tracking-wider">
                   <Sparkles className="w-4 h-4 text-accent-ink animate-pulse" />
@@ -992,8 +1019,8 @@ export const ArticleResultView: React.FC<ArticleResultViewProps> = ({
                 <div
                   className={`p-3 rounded-control text-xs font-medium flex items-center space-x-2 ${
                     selectionMessage.type === 'success'
-                      ? 'bg-accent/90 border border-accent/40/50 text-accent-ink'
-                      : 'bg-danger/90 border border-danger/40/50 text-danger-ink'
+                      ? 'bg-accent/90 border border-accent/50 text-accent-ink'
+                      : 'bg-danger/90 border border-danger/50 text-danger-ink'
                   }`}
                 >
                   <Check className="w-4 h-4 text-accent-ink shrink-0" />
@@ -1023,7 +1050,7 @@ export const ArticleResultView: React.FC<ArticleResultViewProps> = ({
                           type="button"
                           disabled={isRefiningSelection}
                           onClick={() => executeRefineSelection(chip)}
-                          className="text-xs bg-surface-raised hover:bg-accent text-ink hover:text-ink px-3 py-1.5 rounded-control border border-line hover:border-accent/40 transition-all font-medium cursor-pointer disabled:opacity-50 flex items-center space-x-1 shrink-0"
+                          className="text-xs bg-surface-raised hover:bg-accent text-canvas hover:text-ink px-3 py-1.5 rounded-control border border-line hover:border-accent/40 transition-all font-medium cursor-pointer disabled:opacity-50 flex items-center space-x-1 shrink-0"
                         >
                           <Compass className="w-3 h-3 text-accent-ink shrink-0" />
                           <span>{chip}</span>
@@ -1054,7 +1081,7 @@ export const ArticleResultView: React.FC<ArticleResultViewProps> = ({
                         type="button"
                         onClick={() => executeRefineSelection()}
                         disabled={isRefiningSelection || !customRefineInstruction.trim()}
-                        className="px-4 py-2 bg-accent hover:bg-accent text-ink font-bold text-xs rounded-control transition-all shadow-md flex items-center justify-center space-x-1.5 disabled:opacity-50 cursor-pointer shrink-0"
+                        className="px-4 py-2 bg-accent hover:bg-accent text-canvas font-bold text-xs rounded-control transition-all shadow-md flex items-center justify-center space-x-1.5 disabled:opacity-50 cursor-pointer shrink-0"
                       >
                         {isRefiningSelection ? (
                           <>
@@ -1089,7 +1116,7 @@ export const ArticleResultView: React.FC<ArticleResultViewProps> = ({
                 <button
                   onClick={() => setReaderFontSize('sm')}
                   className={`px-2 py-0.5 rounded-control font-bold text-xs transition-all cursor-pointer ${
-                    readerFontSize === 'sm' ? 'bg-accent text-ink shadow-xs' : 'text-ink-muted hover:text-ink'
+                    readerFontSize === 'sm' ? 'bg-accent text-canvas shadow-xs' : 'text-ink-muted hover:text-ink'
                   }`}
                   title="Fonte Pequena"
                 >
@@ -1098,7 +1125,7 @@ export const ArticleResultView: React.FC<ArticleResultViewProps> = ({
                 <button
                   onClick={() => setReaderFontSize('base')}
                   className={`px-2 py-0.5 rounded-control font-bold text-xs transition-all cursor-pointer ${
-                    readerFontSize === 'base' ? 'bg-accent text-ink shadow-xs' : 'text-ink-muted hover:text-ink'
+                    readerFontSize === 'base' ? 'bg-accent text-canvas shadow-xs' : 'text-ink-muted hover:text-ink'
                   }`}
                   title="Fonte Média (Padrão)"
                 >
@@ -1107,7 +1134,7 @@ export const ArticleResultView: React.FC<ArticleResultViewProps> = ({
                 <button
                   onClick={() => setReaderFontSize('lg')}
                   className={`px-2 py-0.5 rounded-control font-bold text-xs transition-all cursor-pointer ${
-                    readerFontSize === 'lg' ? 'bg-accent text-ink shadow-xs' : 'text-ink-muted hover:text-ink'
+                    readerFontSize === 'lg' ? 'bg-accent text-canvas shadow-xs' : 'text-ink-muted hover:text-ink'
                   }`}
                   title="Fonte Grande"
                 >
@@ -1115,53 +1142,51 @@ export const ArticleResultView: React.FC<ArticleResultViewProps> = ({
                 </button>
               </div>
 
-              {/* Theme Selector */}
-              <div className="flex items-center space-x-1 bg-surface p-1 rounded-control border border-line">
-                <span className="text-[10px] text-ink-faint font-bold px-1.5">TEMA:</span>
-                <button
-                  onClick={() => setReaderTheme('light')}
-                  className={`px-2.5 py-0.5 rounded-control font-semibold text-xs transition-all cursor-pointer ${
-                    readerTheme === 'light' ? 'bg-surface text-ink shadow-xs' : 'text-ink-muted hover:bg-surface-raised'
-                  }`}
-                >
-                  ☀️ Claro
-                </button>
-                <button
-                  onClick={() => setReaderTheme('sepia')}
-                  className={`px-2.5 py-0.5 rounded-control font-semibold text-xs transition-all cursor-pointer ${
-                    readerTheme === 'sepia' ? 'bg-[#78350f] text-[#fef3c7] shadow-xs' : 'text-accent-ink hover:bg-accent-soft'
-                  }`}
-                >
-                  📜 Sépia
-                </button>
-                <button
-                  onClick={() => setReaderTheme('dark')}
-                  className={`px-2.5 py-0.5 rounded-control font-semibold text-xs transition-all cursor-pointer ${
-                    readerTheme === 'dark' ? 'bg-surface-raised text-accent-ink shadow-xs' : 'text-ink-muted hover:bg-surface-raised'
-                  }`}
-                >
-                  🌙 Escuro
-                </button>
+              {/* Theme Selector.
+                  Preferência de leitura, independente do tema da interface: ler
+                  ensaio longo é diferente de operar o estúdio. Os três precisam
+                  ser de fato distintos — o mapeamento automático de cores havia
+                  colapsado "claro" e "escuro" em quase a mesma coisa, e o
+                  estado ativo de "claro" usava bg-surface dentro de um
+                  contêiner bg-surface, ficando invisível. */}
+              <div
+                role="radiogroup"
+                aria-label="Tema de leitura"
+                className="flex items-center gap-1 bg-surface-sunken p-1 rounded-control border border-line"
+              >
+                <span className="text-[10px] text-ink-faint font-semibold px-1.5 uppercase tracking-wider">
+                  Tema
+                </span>
+                {READER_THEMES.map(({ id, label }) => {
+                  const active = readerTheme === id;
+                  return (
+                    <button
+                      key={id}
+                      role="radio"
+                      aria-checked={active}
+                      onClick={() => setReaderTheme(id)}
+                      className={`px-2.5 py-1 rounded-md font-medium text-xs transition-colors cursor-pointer ${
+                        active
+                          ? 'bg-accent-soft text-accent-ink'
+                          : 'text-ink-muted hover:text-ink hover:bg-surface-raised'
+                      }`}
+                    >
+                      {label}
+                    </button>
+                  );
+                })}
               </div>
             </div>
           </div>
 
           {/* Formatted Article Content */}
           <div
-            className={`max-w-3xl mx-auto rounded-panel p-6 sm:p-10 transition-all shadow-sm ${
-              readerTheme === 'sepia'
-                ? 'bg-[#fbf7ee] text-[#3a2e2b] border border-[#e8dfc8]'
-                : readerTheme === 'dark'
-                ? 'bg-[#1c1917] text-[#e7e5e4] border border-line'
-                : 'bg-surface text-ink border border-line'
-            } select-text cursor-text space-y-5`}
+            className={`max-w-3xl mx-auto rounded-panel p-6 sm:p-10 transition-colors border ${READER_SURFACES[readerTheme]} select-text cursor-text space-y-5`}
             title="Selecione qualquer trecho com o mouse para abrir o corretor de texto inteligente por IA"
           >
-            <div className={`flex items-center justify-between text-xs border-b pb-2 mb-4 select-none ${
-              readerTheme === 'dark' ? 'text-ink-faint border-line' : 'text-ink-faint border-line'
-            }`}>
+            <div className="flex items-center justify-between text-xs border-b border-current/15 pb-2 mb-4 select-none opacity-60">
               <span className="flex items-center space-x-1 italic">
-                <Edit3 className="w-3.5 h-3.5 text-accent-ink shrink-0" />
+                <Edit3 className="w-3.5 h-3.5 shrink-0" />
                 <span>Dica: Selecione qualquer frase para reescrever com IA ou use 'Editar no Teclado'.</span>
               </span>
             </div>
@@ -1178,9 +1203,7 @@ export const ArticleResultView: React.FC<ArticleResultViewProps> = ({
                   return (
                     <h2 key={idx} className={`font-serif font-bold ${
                       readerFontSize === 'sm' ? 'text-lg' : readerFontSize === 'lg' ? 'text-2xl' : 'text-xl sm:text-2xl'
-                    } mt-8 mb-4 border-b pb-2 ${
-                      readerTheme === 'dark' ? 'text-accent-ink border-line' : 'text-ink border-line'
-                    }`}>
+                    } mt-8 mb-4 border-b pb-2 border-current/15`}>
                       {paragraph.replace('## ', '')}
                     </h2>
                   );
@@ -1190,9 +1213,7 @@ export const ArticleResultView: React.FC<ArticleResultViewProps> = ({
                   return (
                     <h3 key={idx} className={`font-serif font-bold ${
                       readerFontSize === 'sm' ? 'text-base' : readerFontSize === 'lg' ? 'text-xl' : 'text-lg sm:text-xl'
-                    } mt-6 mb-3 ${
-                      readerTheme === 'dark' ? 'text-amber-100' : 'text-ink'
-                    }`}>
+                    } mt-6 mb-3`}>
                       {paragraph.replace('### ', '')}
                     </h3>
                   );
@@ -1201,9 +1222,7 @@ export const ArticleResultView: React.FC<ArticleResultViewProps> = ({
                 if (isList) {
                   const items = paragraph.split('\n');
                   return (
-                    <ul key={idx} className={`list-disc pl-6 space-y-2 ${
-                      readerTheme === 'dark' ? 'text-ink-muted' : 'text-ink-muted'
-                    }`}>
+                    <ul key={idx} className="list-disc pl-6 space-y-2 opacity-85">
                       {items.map((item, i) => (
                         <li key={i}>{item.replace(/^[-*]\s+/, '')}</li>
                       ))}
@@ -1216,15 +1235,9 @@ export const ArticleResultView: React.FC<ArticleResultViewProps> = ({
                   return (
                     <blockquote
                       key={idx}
-                      className={`my-6 p-5 sm:p-6 rounded-panel border-l-4 font-serif italic relative ${
-                        readerTheme === 'dark'
-                          ? 'bg-surface/90 border-accent/40 text-amber-100'
-                          : readerTheme === 'sepia'
-                          ? 'bg-[#f4ebd0]/80 border-accent/40 text-[#2c221e]'
-                          : 'bg-accent-soft/80 border-accent/40 text-accent-ink'
-                      }`}
+                      className={`my-6 p-5 sm:p-6 rounded-panel border-l-4 font-serif italic relative ${READER_QUOTES[readerTheme]}`}
                     >
-                      <span className="text-3xl sm:text-4xl font-serif text-accent-ink/40 absolute top-1 left-3 select-none leading-none">
+                      <span className="text-3xl sm:text-4xl font-serif opacity-30 absolute top-1 left-3 select-none leading-none">
                         “
                       </span>
                       <p className={`relative z-10 pl-4 ${
@@ -1243,8 +1256,6 @@ export const ArticleResultView: React.FC<ArticleResultViewProps> = ({
                       : readerFontSize === 'lg'
                       ? 'text-base sm:text-lg'
                       : 'text-sm sm:text-base'
-                  } ${
-                    readerTheme === 'dark' ? 'text-ink' : 'text-ink'
                   }`}>
                     {paragraph}
                   </p>
@@ -1252,13 +1263,14 @@ export const ArticleResultView: React.FC<ArticleResultViewProps> = ({
               })}
 
             {/* SEÇÃO DE PERGUNTAS PARA REFLEXÃO PSICOTERAPÊUTICA / LEVAR À SESSÃO */}
-            <div className={`mt-10 pt-8 border-t space-y-4 ${
-              readerTheme === 'dark' ? 'border-line' : 'border-line'
-            }`}>
-              <div className="bg-surface-raised text-ink rounded-panel p-5 sm:p-7 space-y-4 shadow-lg border border-accent/40/30">
-                <div className="flex items-center justify-between border-b border-line pb-3">
-                  <div className="flex items-center space-x-2 text-accent-ink font-serif font-bold text-base sm:text-lg">
-                    <Compass className="w-5 h-5 text-accent-ink shrink-0" />
+            <div className="mt-10 pt-8 border-t border-current/15 space-y-4">
+              {/* Bloco de destaque dentro do artigo: deriva da cor da superfície
+                  em vez de usar os tokens da interface, senão vira um cartão
+                  escuro sobre papel claro. */}
+              <div className="bg-current/[0.04] rounded-panel p-5 sm:p-7 space-y-4 border border-current/15">
+                <div className="flex items-center justify-between border-b border-current/15 pb-3">
+                  <div className="flex items-center space-x-2 font-serif font-bold text-base sm:text-lg">
+                    <Compass className="w-5 h-5 shrink-0" />
                     <span>Perguntas para Reflexão Psicoterapêutica</span>
                   </div>
                   <button
@@ -1269,7 +1281,7 @@ export const ArticleResultView: React.FC<ArticleResultViewProps> = ({
                         addToast('success', 'Perguntas copiadas!', 'Prontas para envio ao paciente ou anotação pessoal.');
                       }
                     }}
-                    className="px-3 py-1.5 bg-accent hover:bg-accent text-ink font-bold text-xs rounded-control flex items-center space-x-1.5 transition-all shadow-xs cursor-pointer shrink-0"
+                    className="px-3 py-1.5 bg-accent hover:bg-accent text-canvas font-bold text-xs rounded-control flex items-center space-x-1.5 transition-all shadow-xs cursor-pointer shrink-0"
                   >
                     {copiedField === 'reflection_questions' ? <Check className="w-3.5 h-3.5 text-ink" /> : <Copy className="w-3.5 h-3.5 text-ink" />}
                     <span>{copiedField === 'reflection_questions' ? 'Copiado!' : 'Copiar Perguntas'}</span>
@@ -1346,7 +1358,7 @@ export const ArticleResultView: React.FC<ArticleResultViewProps> = ({
               <button
                 onClick={handleGenerateDerivedFormats}
                 disabled={isGeneratingDerived}
-                className="w-full sm:w-auto px-4 py-2.5 bg-accent hover:bg-accent text-ink font-bold text-xs sm:text-sm rounded-control shadow-md flex items-center justify-center space-x-2 transition-all cursor-pointer min-h-[40px] disabled:opacity-50"
+                className="w-full sm:w-auto px-4 py-2.5 bg-accent hover:bg-accent text-canvas font-bold text-xs sm:text-sm rounded-control shadow-md flex items-center justify-center space-x-2 transition-all cursor-pointer min-h-[40px] disabled:opacity-50"
               >
                 {isGeneratingDerived ? (
                   <>
@@ -1426,7 +1438,7 @@ export const ArticleResultView: React.FC<ArticleResultViewProps> = ({
                             .join('\n---\n\n');
                           handleCopyText(fullText, 'full_carousel');
                         }}
-                        className="px-3.5 py-1.5 bg-accent hover:bg-accent text-ink font-bold text-xs rounded-control flex items-center space-x-1.5 transition-all cursor-pointer shadow-xs min-h-[36px]"
+                        className="px-3.5 py-1.5 bg-accent hover:bg-accent text-canvas font-bold text-xs rounded-control flex items-center space-x-1.5 transition-all cursor-pointer shadow-xs min-h-[36px]"
                       >
                         {copiedField === 'full_carousel' ? <Check className="w-3.5 h-3.5 text-accent-ink" /> : <Copy className="w-3.5 h-3.5" />}
                         <span>{copiedField === 'full_carousel' ? 'Copiado!' : 'Copiar Carrossel Inteiro'}</span>
@@ -1463,7 +1475,7 @@ export const ArticleResultView: React.FC<ArticleResultViewProps> = ({
                               </button>
                             </div>
 
-                            <h4 className="font-serif font-bold text-base text-amber-100 leading-snug">
+                            <h4 className="font-serif font-bold text-base text-ink leading-snug">
                               {slide.slideTitle}
                             </h4>
 
@@ -1518,7 +1530,7 @@ export const ArticleResultView: React.FC<ArticleResultViewProps> = ({
                             const scriptText = `[GANCHO INICIAL (0-3s)]\n"${derivedFormats.reelsScript!.hook}"\n\n[FALA PRINCIPAL]\n${derivedFormats.reelsScript!.coreNarrative}\n\n[ORIENTAÇÕES VISUAIS]\n${derivedFormats.reelsScript!.visualInstructions || ''}\n\n[CHAMADA REFLEXIVA]\n"${derivedFormats.reelsScript!.callToReflection}"`;
                             handleCopyText(scriptText, 'reels_full_script');
                           }}
-                          className="px-3.5 py-1.5 bg-accent hover:bg-accent text-ink font-bold text-xs rounded-control flex items-center space-x-1.5 transition-all cursor-pointer shadow-sm"
+                          className="px-3.5 py-1.5 bg-accent hover:bg-accent text-canvas font-bold text-xs rounded-control flex items-center space-x-1.5 transition-all cursor-pointer shadow-sm"
                         >
                           {copiedField === 'reels_full_script' ? <Check className="w-3.5 h-3.5 text-ink" /> : <Copy className="w-3.5 h-3.5" />}
                           <span>{copiedField === 'reels_full_script' ? 'Roteiro Copiado!' : 'Copiar Roteiro de Vídeo'}</span>
@@ -1526,11 +1538,11 @@ export const ArticleResultView: React.FC<ArticleResultViewProps> = ({
                       </div>
 
                       {/* Hook */}
-                      <div className="bg-accent/50 border border-accent/40/40 p-4 rounded-panel space-y-1">
+                      <div className="bg-accent/50 border border-accent/40 p-4 rounded-panel space-y-1">
                         <span className="text-[10px] font-bold text-accent-ink uppercase tracking-widest block">
                           🎯 Gancho Inicial (0 a 3 Segundos):
                         </span>
-                        <p className="text-sm font-serif font-bold text-amber-100 leading-snug">
+                        <p className="text-sm font-serif font-bold text-ink leading-snug">
                           "{derivedFormats.reelsScript.hook}"
                         </p>
                       </div>
@@ -1669,7 +1681,7 @@ export const ArticleResultView: React.FC<ArticleResultViewProps> = ({
                 <span className="text-xs font-bold text-ink-muted">Edição direta de texto via teclado</span>
                 <button
                   onClick={handleSaveEdits}
-                  className="px-4 py-1.5 bg-accent text-ink font-bold text-xs rounded-control flex items-center space-x-1 shadow-xs cursor-pointer"
+                  className="px-4 py-1.5 bg-accent text-canvas font-bold text-xs rounded-control flex items-center space-x-1 shadow-xs cursor-pointer"
                 >
                   <Save className="w-3.5 h-3.5 text-accent-ink" />
                   <span>Salvar Alterações</span>
@@ -1775,7 +1787,7 @@ export const ArticleResultView: React.FC<ArticleResultViewProps> = ({
             </div>
 
             {/* Re-Review Form Section */}
-            <div className="bg-surface-raised border border-accent/40/80 rounded-panel p-5 space-y-4">
+            <div className="bg-surface-raised border border-accent/80 rounded-panel p-5 space-y-4">
               <div className="space-y-1">
                 <div className="flex items-center space-x-2 text-accent-ink font-bold text-sm">
                   <Sparkles className="w-4 h-4 text-accent-ink" />
@@ -1807,7 +1819,7 @@ export const ArticleResultView: React.FC<ArticleResultViewProps> = ({
                     type="button"
                     onClick={handleReReview}
                     disabled={isReReviewing}
-                    className="px-4 py-2.5 bg-accent hover:bg-accent text-ink font-bold text-xs rounded-control shadow-xs flex items-center space-x-2 transition-all disabled:opacity-50 cursor-pointer"
+                    className="px-4 py-2.5 bg-accent hover:bg-accent text-canvas font-bold text-xs rounded-control shadow-xs flex items-center space-x-2 transition-all disabled:opacity-50 cursor-pointer"
                   >
                     {isReReviewing ? (
                       <>

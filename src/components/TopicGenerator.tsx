@@ -81,10 +81,10 @@ export const TopicGenerator: React.FC<TopicGeneratorProps> = ({ manifesto, onSel
   };
 
   return (
-    <div className="bg-surface-raised rounded-panel p-6 sm:p-8 border border-accent/40/80 shadow-sm space-y-6 transition-colors">
+    <div className="bg-surface-raised rounded-panel p-6 sm:p-8 border border-accent/80 shadow-sm space-y-6 transition-colors">
       
       {/* Header */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-accent/40/60 pb-4">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-accent/60 pb-4">
         <div className="space-y-1">
           <div className="flex items-center space-x-2 text-accent-ink text-xs font-bold uppercase tracking-wider">
             <Sparkles className="w-4 h-4 text-accent-ink animate-pulse" />
@@ -102,7 +102,7 @@ export const TopicGenerator: React.FC<TopicGeneratorProps> = ({ manifesto, onSel
           type="button"
           onClick={() => handleGenerate()}
           disabled={isGenerating}
-          className="px-5 py-3 bg-accent hover:bg-accent text-ink font-bold text-xs sm:text-sm rounded-panel shadow-md flex items-center space-x-2 shrink-0 transition-all disabled:opacity-50 cursor-pointer"
+          className="px-5 py-3 bg-accent hover:bg-accent text-canvas font-bold text-xs sm:text-sm rounded-panel shadow-md flex items-center space-x-2 shrink-0 transition-all disabled:opacity-50 cursor-pointer"
         >
           {isGenerating ? (
             <>
@@ -158,7 +158,7 @@ export const TopicGenerator: React.FC<TopicGeneratorProps> = ({ manifesto, onSel
               }}
               className={`text-xs px-2.5 py-1 rounded-control border transition-all ${
                 selectedCategory === ''
-                  ? 'bg-accent text-ink border-accent/40 font-semibold shadow-2xs'
+                  ? 'bg-accent text-canvas border-accent/40 font-semibold shadow-2xs'
                   : 'bg-surface-raised hover:bg-surface-raised text-ink-muted border-line'
               }`}
             >
@@ -174,7 +174,7 @@ export const TopicGenerator: React.FC<TopicGeneratorProps> = ({ manifesto, onSel
                 }}
                 className={`text-xs px-2.5 py-1 rounded-control border transition-all ${
                   selectedCategory === cat
-                    ? 'bg-accent text-ink border-accent/40 font-semibold shadow-2xs'
+                    ? 'bg-accent text-canvas border-accent/40 font-semibold shadow-2xs'
                     : 'bg-surface-raised hover:bg-surface-raised text-ink-muted border-line'
                 }`}
               >
@@ -269,8 +269,8 @@ export const TopicGenerator: React.FC<TopicGeneratorProps> = ({ manifesto, onSel
                       onClick={() => handleChoose(t)}
                       className={`px-4 py-2 rounded-control text-xs font-bold flex items-center space-x-1.5 transition-all cursor-pointer ${
                         isPicked
-                          ? 'bg-accent text-ink shadow-xs'
-                          : 'bg-surface hover:bg-accent text-ink'
+                          ? 'bg-accent text-canvas shadow-xs'
+                          : 'bg-surface hover:bg-accent text-canvas'
                       }`}
                     >
                       {isPicked ? (

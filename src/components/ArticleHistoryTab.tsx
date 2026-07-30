@@ -82,7 +82,7 @@ export const ArticleHistoryTab: React.FC<ArticleHistoryTabProps> = ({
 
         <button
           onClick={onStartNewPost}
-          className="w-full sm:w-auto px-4 py-2.5 bg-accent hover:bg-accent text-ink font-semibold text-xs sm:text-sm rounded-control flex items-center justify-center space-x-2 shadow-sm transition-all cursor-pointer min-h-[40px]"
+          className="w-full sm:w-auto px-4 py-2.5 bg-accent hover:bg-accent text-canvas font-semibold text-xs sm:text-sm rounded-control flex items-center justify-center space-x-2 shadow-sm transition-all cursor-pointer min-h-[40px]"
         >
           <Sparkles className="w-4 h-4 text-accent-ink" />
           <span>Criar Novo Artigo</span>
@@ -128,7 +128,7 @@ export const ArticleHistoryTab: React.FC<ArticleHistoryTabProps> = ({
                 onClick={() => setSelectedTag(tag)}
                 className={`px-3 py-1 rounded-full text-xs font-medium whitespace-nowrap transition-all cursor-pointer ${
                   selectedTag === tag
-                    ? 'bg-accent text-ink font-semibold shadow-xs'
+                    ? 'bg-accent text-canvas font-semibold shadow-xs'
                     : 'bg-surface-raised text-ink-muted hover:bg-surface-raised'
                 }`}
               >
@@ -156,7 +156,7 @@ export const ArticleHistoryTab: React.FC<ArticleHistoryTabProps> = ({
           {posts.length === 0 && (
             <button
               onClick={onStartNewPost}
-              className="px-5 py-2.5 bg-accent text-ink font-semibold text-xs rounded-control shadow-xs cursor-pointer min-h-[40px]"
+              className="px-5 py-2.5 bg-accent text-canvas font-semibold text-xs rounded-control shadow-xs cursor-pointer min-h-[40px]"
             >
               Criar Primeiro Artigo
             </button>

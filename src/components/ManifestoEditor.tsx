@@ -87,7 +87,7 @@ export const ManifestoEditor: React.FC<ManifestoEditorProps> = ({ manifesto, onS
     <form onSubmit={handleSubmit} className="max-w-4xl mx-auto space-y-8 py-4">
       
       {/* Header Banner */}
-      <div className="bg-surface-raised text-ink rounded-panel p-6 sm:p-8 shadow-xl border border-accent/40/40 space-y-3 relative overflow-hidden">
+      <div className="bg-surface-raised text-ink rounded-panel p-6 sm:p-8 shadow-xl border border-accent/40 space-y-3 relative overflow-hidden">
         <div className="absolute top-0 right-0 p-8 opacity-10 pointer-events-none">
           <Heart className="w-64 h-64 text-accent-ink" />
         </div>
@@ -101,7 +101,7 @@ export const ManifestoEditor: React.FC<ManifestoEditorProps> = ({ manifesto, onS
           Sua Visão de Mundo & Tom de Voz
         </h1>
 
-        <div className="flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-accent/40/60">
+        <div className="flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-accent/60">
           <p className="text-xs sm:text-sm text-ink-muted max-w-xl leading-relaxed">
             Sua equipe virtual (Redator, Revisor e Designer) consultará este manifesto em <strong>cada artigo gerado</strong>.
           </p>
@@ -112,7 +112,7 @@ export const ManifestoEditor: React.FC<ManifestoEditorProps> = ({ manifesto, onS
                 setFormData(DEFAULT_USER_MANIFESTO);
               }
             }}
-            className="px-3.5 py-1.5 bg-accent/80 hover:bg-accent text-canvas text-xs font-semibold rounded-control border border-accent/40/50 flex items-center space-x-1.5 transition-all cursor-pointer shadow-2xs"
+            className="px-3.5 py-1.5 bg-accent/80 hover:bg-accent text-canvas text-xs font-semibold rounded-control border border-accent/50 flex items-center space-x-1.5 transition-all cursor-pointer shadow-2xs"
           >
             <RotateCcw className="w-3.5 h-3.5 text-accent-ink" />
             <span>Carregar Manifesto Clínico Completo</span>
@@ -120,7 +120,7 @@ export const ManifestoEditor: React.FC<ManifestoEditorProps> = ({ manifesto, onS
         </div>
 
         {savedSuccess && (
-          <div className="bg-accent/20 border border-accent/40/50 text-accent-ink text-xs sm:text-sm font-semibold p-3 rounded-panel flex items-center space-x-2 animate-fade-in">
+          <div className="bg-accent/20 border border-accent/50 text-accent-ink text-xs sm:text-sm font-semibold p-3 rounded-panel flex items-center space-x-2 animate-fade-in">
             <CheckCircle2 className="w-5 h-5 text-accent-ink shrink-0" />
             <span>Sua visão de mundo foi salva com sucesso! Os próximos artigos usarão este estilo.</span>
           </div>
@@ -248,7 +248,7 @@ export const ManifestoEditor: React.FC<ManifestoEditorProps> = ({ manifesto, onS
               <button
                 type="button"
                 onClick={addKeyword}
-                className="px-3 py-2 bg-accent hover:bg-accent text-ink font-semibold text-xs rounded-control"
+                className="px-3 py-2 bg-accent hover:bg-accent text-canvas font-semibold text-xs rounded-control"
               >
                 + Adicionar
               </button>
@@ -353,7 +353,7 @@ export const ManifestoEditor: React.FC<ManifestoEditorProps> = ({ manifesto, onS
             <button
               type="button"
               onClick={addCategory}
-              className="px-4 py-2.5 bg-accent hover:bg-accent text-ink font-bold text-xs rounded-control shadow-xs transition-all cursor-pointer"
+              className="px-4 py-2.5 bg-accent hover:bg-accent text-canvas font-bold text-xs rounded-control shadow-xs transition-all cursor-pointer"
             >
               + Adicionar Eixo
             </button>
@@ -363,7 +363,7 @@ export const ManifestoEditor: React.FC<ManifestoEditorProps> = ({ manifesto, onS
             {(formData.themeCategories || []).map((cat, idx) => (
               <span
                 key={idx}
-                className="bg-accent-soft text-accent-ink border border-accent/40/80 text-xs font-semibold px-3 py-1.5 rounded-control flex items-center space-x-2 shadow-2xs"
+                className="bg-accent-soft text-accent-ink border border-accent/80 text-xs font-semibold px-3 py-1.5 rounded-control flex items-center space-x-2 shadow-2xs"
               >
                 <span>{cat}</span>
                 <button
@@ -417,7 +417,7 @@ export const ManifestoEditor: React.FC<ManifestoEditorProps> = ({ manifesto, onS
       <div className="flex justify-center pt-2">
         <button
           type="submit"
-          className="px-10 py-4 bg-accent hover:bg-accent text-ink font-bold text-base rounded-panel shadow-xl flex items-center space-x-3 transition-all cursor-pointer"
+          className="px-10 py-4 bg-accent hover:bg-accent text-canvas font-bold text-base rounded-panel shadow-xl flex items-center space-x-3 transition-all cursor-pointer"
         >
           <Save className="w-5 h-5 text-accent-ink" />
           <span>Salvar Minha Visão de Mundo</span>

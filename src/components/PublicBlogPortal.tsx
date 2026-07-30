@@ -119,7 +119,7 @@ export const PublicBlogPortal: React.FC<PublicBlogPortalProps> = ({
         <div className="max-w-7xl mx-auto py-2.5 px-4 sm:px-6 flex items-center justify-between gap-3 text-xs">
           <div className="flex items-center space-x-2">
             <span className="w-2 h-2 rounded-full bg-accent animate-pulse"></span>
-            <span className={`font-bold uppercase tracking-wider text-[11px] ${isDark ? 'text-accent-ink' : 'text-accent-ink'}`}>
+            <span className={`font-bold uppercase tracking-wider text-[11px] text-accent-ink`}>
               Portal do Leitor
             </span>
             <span className="text-ink-faint hidden sm:inline">• Visualização Minimalista & Elegante</span>
@@ -173,7 +173,7 @@ export const PublicBlogPortal: React.FC<PublicBlogPortalProps> = ({
             {/* Back to Studio */}
             <button
               onClick={onBackToStudio}
-              className="bg-accent hover:bg-accent text-ink font-bold px-3 py-1.5 rounded-control transition-all flex items-center space-x-1 cursor-pointer text-xs"
+              className="bg-accent hover:bg-accent text-canvas font-bold px-3 py-1.5 rounded-control transition-all flex items-center space-x-1 cursor-pointer text-xs"
             >
               <ArrowLeft className="w-3.5 h-3.5" />
               <span className="hidden sm:inline">Studio</span>
@@ -195,7 +195,7 @@ export const PublicBlogPortal: React.FC<PublicBlogPortalProps> = ({
           </div>
 
           <h1 className={`font-serif text-3xl sm:text-5xl font-bold tracking-tight leading-tight ${
-            isDark ? 'text-ink' : 'text-ink'
+            'text-ink'
           }`}>
             {manifesto.authorName ? `Cadernos de ${manifesto.authorName}` : 'Cadernos de Psicologia & Subjetividade'}
           </h1>
@@ -207,15 +207,15 @@ export const PublicBlogPortal: React.FC<PublicBlogPortalProps> = ({
           </p>
 
           <div className={`pt-2 flex flex-wrap items-center justify-center gap-4 text-xs ${
-            isDark ? 'text-ink-faint' : 'text-ink-faint'
+            'text-ink-faint'
           }`}>
             <span className="flex items-center space-x-1">
-              <User className={`w-3.5 h-3.5 ${isDark ? 'text-accent-ink' : 'text-accent-ink'}`} />
+              <User className={`w-3.5 h-3.5 text-accent-ink`} />
               <span>Por <strong>{manifesto.authorName || 'Profissional da Saúde Mental'}</strong></span>
             </span>
             <span>•</span>
             <span className="flex items-center space-x-1">
-              <BookOpen className={`w-3.5 h-3.5 ${isDark ? 'text-accent-ink' : 'text-accent-ink'}`} />
+              <BookOpen className={`w-3.5 h-3.5 text-accent-ink`} />
               <span>{publishedPosts.length} Ensaios Publicados</span>
             </span>
           </div>
@@ -264,14 +264,14 @@ export const PublicBlogPortal: React.FC<PublicBlogPortalProps> = ({
               </div>
 
               <h1 className={`font-serif text-3xl sm:text-4xl font-bold leading-tight ${
-                isDark ? 'text-ink' : 'text-ink'
+                'text-ink'
               }`}>
                 {selectedPost.review?.revisedTitle || selectedPost.draft?.title}
               </h1>
 
               {selectedPost.review?.revisedSubtitle && (
                 <p className={`text-lg sm:text-xl font-serif italic leading-relaxed ${
-                  isDark ? 'text-ink-muted' : 'text-ink-muted'
+                  'text-ink-muted'
                 }`}>
                   {selectedPost.review.revisedSubtitle}
                 </p>
@@ -332,11 +332,11 @@ export const PublicBlogPortal: React.FC<PublicBlogPortalProps> = ({
             {selectedPost.review?.keyTakeaways && selectedPost.review.keyTakeaways.length > 0 && (
               <div className={`rounded-panel p-6 space-y-3 border ${
                 isDark
-                  ? 'bg-surface/90 border-accent/40/60 text-ink'
+                  ? 'bg-surface/90 border-accent/60 text-ink'
                   : 'bg-accent-soft/60 border-accent/40 text-accent-ink'
               }`}>
                 <h3 className={`font-serif font-bold text-base flex items-center space-x-2 ${
-                  isDark ? 'text-accent-ink' : 'text-accent-ink'
+                  'text-accent-ink'
                 }`}>
                   <Sparkles className="w-4 h-4 text-accent-ink" />
                   <span>Síntese Reflexiva para a Vida Cotidiana:</span>
@@ -344,7 +344,7 @@ export const PublicBlogPortal: React.FC<PublicBlogPortalProps> = ({
                 <ul className="space-y-2 text-xs sm:text-sm">
                   {selectedPost.review.keyTakeaways.map((takeaway, idx) => (
                     <li key={idx} className="flex items-start space-x-2">
-                      <span className={isDark ? 'text-accent-ink font-bold' : 'text-accent-ink font-bold'}>•</span>
+                      <span className={'text-accent-ink font-bold'}>•</span>
                       <span>{takeaway}</span>
                     </li>
                   ))}
@@ -381,7 +381,7 @@ export const PublicBlogPortal: React.FC<PublicBlogPortalProps> = ({
 
                 <button
                   onClick={() => setShowExportModal(selectedPost)}
-                  className="bg-accent hover:bg-accent text-ink px-4 py-2 rounded-control text-xs font-bold flex items-center space-x-1.5 transition-all cursor-pointer"
+                  className="bg-accent hover:bg-accent text-canvas px-4 py-2 rounded-control text-xs font-bold flex items-center space-x-1.5 transition-all cursor-pointer"
                 >
                   <Code2 className="w-3.5 h-3.5 text-accent-ink" />
                   <span>Exportar para WordPress / Ghost</span>
@@ -429,9 +429,7 @@ export const PublicBlogPortal: React.FC<PublicBlogPortalProps> = ({
                     onClick={() => setSelectedCategory(cat)}
                     className={`px-3 py-1.5 rounded-control text-xs font-medium transition-all cursor-pointer ${
                       selectedCategory === cat
-                        ? isDark
-                          ? 'bg-accent text-ink font-bold shadow-xs'
-                          : 'bg-accent text-ink font-bold shadow-xs'
+                        ? 'bg-accent text-canvas font-bold shadow-xs'
                         : isDark
                           ? 'bg-surface text-ink-muted hover:bg-surface-raised'
                           : 'bg-surface-raised text-ink-muted hover:bg-surface-raised'
@@ -454,7 +452,7 @@ export const PublicBlogPortal: React.FC<PublicBlogPortalProps> = ({
               }`}>
                 <BookOpen className="w-8 h-8" />
               </div>
-              <h3 className={`font-serif font-bold text-2xl ${isDark ? 'text-ink' : 'text-ink'}`}>
+              <h3 className={`font-serif font-bold text-2xl text-ink`}>
                 Nenhum Ensaio Publicado Ainda
               </h3>
               <p className="text-ink-faint text-sm leading-relaxed">
@@ -462,7 +460,7 @@ export const PublicBlogPortal: React.FC<PublicBlogPortalProps> = ({
               </p>
               <button
                 onClick={onBackToStudio}
-                className="bg-accent hover:bg-accent text-ink font-bold px-6 py-3 rounded-panel text-xs transition-all shadow-md cursor-pointer inline-flex items-center space-x-2"
+                className="bg-accent hover:bg-accent text-canvas font-bold px-6 py-3 rounded-panel text-xs transition-all shadow-md cursor-pointer inline-flex items-center space-x-2"
               >
                 <Sparkles className="w-4 h-4 text-accent-ink" />
                 <span>Criar Meu Primeiro Ensaio Agora</span>
@@ -474,13 +472,13 @@ export const PublicBlogPortal: React.FC<PublicBlogPortalProps> = ({
           {featuredPost && (
             <section className="space-y-3">
               <div className="flex items-center space-x-2 text-xs font-bold uppercase tracking-widest text-accent-ink">
-                <Sparkles className={`w-4 h-4 ${isDark ? 'text-accent-ink' : 'text-accent-ink'}`} />
-                <span className={isDark ? 'text-accent-ink' : 'text-accent-ink'}>Ensaio em Destaque</span>
+                <Sparkles className={`w-4 h-4 text-accent-ink`} />
+                <span className={'text-accent-ink'}>Ensaio em Destaque</span>
               </div>
 
               <div
                 onClick={() => setSelectedPost(featuredPost)}
-                className={`rounded-panel border overflow-hidden grid grid-cols-1 md:grid-cols-12 transition-all cursor-pointer group hover:border-accent/40/50 ${
+                className={`rounded-panel border overflow-hidden grid grid-cols-1 md:grid-cols-12 transition-all cursor-pointer group hover:border-accent/50 ${
                   isDark ? 'bg-[#18191e] border-line/80 shadow-lg' : 'bg-surface border-line/80 shadow-xs hover:shadow-md'
                 }`}
               >
@@ -504,7 +502,7 @@ export const PublicBlogPortal: React.FC<PublicBlogPortalProps> = ({
                   <div className="space-y-3">
                     <div className="flex items-center space-x-2 text-xs text-ink-faint font-medium">
                       <span className={`font-bold px-2.5 py-0.5 rounded-full text-[10px] ${
-                        isDark ? 'bg-accent/20 text-accent-ink border border-accent/40/30' : 'bg-accent-soft text-accent-ink'
+                        isDark ? 'bg-accent/20 text-accent-ink border border-accent/30' : 'bg-accent-soft text-accent-ink'
                       }`}>
                         Destaque
                       </span>
@@ -515,7 +513,7 @@ export const PublicBlogPortal: React.FC<PublicBlogPortalProps> = ({
                     </div>
 
                     <h2 className={`font-serif text-2xl sm:text-3xl font-bold transition-colors leading-tight ${
-                      isDark ? 'text-ink group-hover:text-accent-ink' : 'text-ink group-hover:text-accent-ink'
+                      'text-ink group-hover:text-accent-ink'
                     }`}>
                       {featuredPost.review?.revisedTitle || featuredPost.draft?.title}
                     </h2>
@@ -528,7 +526,7 @@ export const PublicBlogPortal: React.FC<PublicBlogPortalProps> = ({
                   </div>
 
                   <div className={`pt-4 border-t flex items-center justify-between ${
-                    isDark ? 'border-line' : 'border-line'
+                    'border-line'
                   }`}>
                     <div className="flex flex-wrap gap-1">
                       {featuredPost.review?.suggestedTags?.slice(0, 3).map((t) => (
@@ -544,7 +542,7 @@ export const PublicBlogPortal: React.FC<PublicBlogPortalProps> = ({
                     </div>
 
                     <span className={`text-xs font-bold flex items-center space-x-1 group-hover:translate-x-1 transition-transform ${
-                      isDark ? 'text-accent-ink' : 'text-accent-ink'
+                      'text-accent-ink'
                     }`}>
                       <span>Ler Ensaio</span>
                       <span>→</span>
@@ -558,7 +556,7 @@ export const PublicBlogPortal: React.FC<PublicBlogPortalProps> = ({
           {/* Regular Posts - Grid or List Minimalist View */}
           {regularPosts.length > 0 && (
             <section className="space-y-4">
-              <h3 className={`font-serif font-bold text-xl ${isDark ? 'text-ink' : 'text-ink'}`}>
+              <h3 className={`font-serif font-bold text-xl text-ink`}>
                 Outros Ensaios Publicados
               </h3>
 
@@ -595,7 +593,7 @@ export const PublicBlogPortal: React.FC<PublicBlogPortalProps> = ({
                           </div>
 
                           <h4 className={`font-serif font-bold text-lg line-clamp-2 leading-snug transition-colors ${
-                            isDark ? 'text-ink group-hover:text-accent-ink' : 'text-ink group-hover:text-accent-ink'
+                            'text-ink group-hover:text-accent-ink'
                           }`}>
                             {post.review?.revisedTitle || post.draft?.title}
                           </h4>
@@ -615,7 +613,7 @@ export const PublicBlogPortal: React.FC<PublicBlogPortalProps> = ({
                           #{post.review?.suggestedTags?.[0] || 'Ensaio'}
                         </span>
                         <span className={`text-xs font-bold flex items-center space-x-1 group-hover:translate-x-1 transition-transform ${
-                          isDark ? 'text-accent-ink' : 'text-accent-ink'
+                          'text-accent-ink'
                         }`}>
                           <span>Ler</span>
                           <span>→</span>
@@ -645,7 +643,7 @@ export const PublicBlogPortal: React.FC<PublicBlogPortalProps> = ({
                           {post.review?.suggestedTags?.[0] && (
                             <>
                               <span>•</span>
-                              <span className={isDark ? 'text-accent-ink' : 'text-accent-ink'}>
+                              <span className={'text-accent-ink'}>
                                 #{post.review.suggestedTags[0]}
                               </span>
                             </>
@@ -653,7 +651,7 @@ export const PublicBlogPortal: React.FC<PublicBlogPortalProps> = ({
                         </div>
 
                         <h4 className={`font-serif font-bold text-xl sm:text-2xl transition-colors ${
-                          isDark ? 'text-ink group-hover:text-accent-ink' : 'text-ink group-hover:text-accent-ink'
+                          'text-ink group-hover:text-accent-ink'
                         }`}>
                           {post.review?.revisedTitle || post.draft?.title}
                         </h4>
@@ -665,8 +663,8 @@ export const PublicBlogPortal: React.FC<PublicBlogPortalProps> = ({
                         </p>
 
                         <div className="pt-2 flex items-center space-x-1 text-xs font-bold text-accent-ink">
-                          <span className={isDark ? 'text-accent-ink' : 'text-accent-ink'}>Continuar leitura</span>
-                          <span className={`group-hover:translate-x-1 transition-transform ${isDark ? 'text-accent-ink' : 'text-accent-ink'}`}>→</span>
+                          <span className={'text-accent-ink'}>Continuar leitura</span>
+                          <span className={`group-hover:translate-x-1 transition-transform text-accent-ink`}>→</span>
                         </div>
                       </div>
 
@@ -694,8 +692,8 @@ export const PublicBlogPortal: React.FC<PublicBlogPortalProps> = ({
           <div className={`rounded-panel max-w-2xl w-full p-6 sm:p-8 space-y-6 shadow-2xl border max-h-[90vh] overflow-y-auto ${
             isDark ? 'bg-[#18191e] border-line text-ink' : 'bg-surface border-line text-ink'
           }`}>
-            <div className={`flex items-center justify-between pb-4 border-b ${isDark ? 'border-line' : 'border-line'}`}>
-              <div className={`flex items-center space-x-2 font-serif font-bold text-xl ${isDark ? 'text-accent-ink' : 'text-accent-ink'}`}>
+            <div className={`flex items-center justify-between pb-4 border-b border-line`}>
+              <div className={`flex items-center space-x-2 font-serif font-bold text-xl text-accent-ink`}>
                 <Code2 className="w-5 h-5" />
                 <h3>Exportar ou Integrar com Site Externo</h3>
               </div>
@@ -742,7 +740,7 @@ export const PublicBlogPortal: React.FC<PublicBlogPortalProps> = ({
 
               <button
                 onClick={() => setWebhookSimulated(true)}
-                className="w-full bg-accent hover:bg-accent text-ink font-sans font-bold py-2.5 rounded-control text-xs transition-all flex items-center justify-center space-x-2 cursor-pointer"
+                className="w-full bg-accent hover:bg-accent text-canvas font-sans font-bold py-2.5 rounded-control text-xs transition-all flex items-center justify-center space-x-2 cursor-pointer"
               >
                 <Send className="w-3.5 h-3.5 text-accent-ink" />
                 <span>Simular Disparo de Webhook para WordPress / Ghost</span>
