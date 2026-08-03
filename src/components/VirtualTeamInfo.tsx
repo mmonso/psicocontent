@@ -30,7 +30,7 @@ export const VirtualTeamInfo: React.FC<VirtualTeamInfoProps> = ({
           <div className="pt-2 flex flex-wrap gap-3">
             <button
               onClick={onStartCreate}
-              className="px-5 py-2.5 bg-accent hover:bg-accent text-canvas font-semibold text-sm rounded-control transition-all shadow-md flex items-center space-x-2 cursor-pointer"
+              className="px-5 py-2.5 bg-accent hover:bg-accent-strong text-canvas font-semibold text-sm rounded-control transition-all shadow-md flex items-center space-x-2 cursor-pointer"
             >
               <span>Criar Artigo Agora</span>
               <ArrowRight className="w-4 h-4" />
@@ -79,13 +79,13 @@ export const VirtualTeamInfo: React.FC<VirtualTeamInfoProps> = ({
         </div>
 
         {/* Agent 2: Editor de Humanização */}
-        <div className="bg-surface rounded-panel p-6 border border-line shadow-sm space-y-4 flex flex-col justify-between hover:border-cyan-300 transition-all">
+        <div className="bg-surface rounded-panel p-6 border border-line shadow-sm space-y-4 flex flex-col justify-between hover:border-accent/40 transition-all">
           <div className="space-y-3">
-            <div className="w-12 h-12 rounded-control bg-cyan-50 border border-cyan-200 flex items-center justify-center text-cyan-700">
+            <div className="w-12 h-12 rounded-control bg-accent-soft border border-accent/40 flex items-center justify-center text-accent-ink">
               <Wand2 className="w-6 h-6" />
             </div>
             <div>
-              <span className="text-xs font-semibold uppercase tracking-wider text-cyan-600">Agente 02 • Ritmo Textual</span>
+              <span className="text-xs font-semibold uppercase tracking-wider text-accent-ink">Agente 02 • Ritmo Textual</span>
               <h3 className="font-serif font-bold text-lg text-ink">Editor de Humanização (O "Des-AIzador")</h3>
             </div>
             <p className="text-ink-muted text-xs sm:text-sm leading-relaxed">
@@ -93,15 +93,15 @@ export const VirtualTeamInfo: React.FC<VirtualTeamInfoProps> = ({
             </p>
             <ul className="space-y-1.5 text-xs text-ink-muted pt-2">
               <li className="flex items-center space-x-2">
-                <CheckCircle2 className="w-3.5 h-3.5 text-cyan-600 shrink-0" />
+                <CheckCircle2 className="w-3.5 h-3.5 text-accent-ink shrink-0" />
                 <span>Expurga conectores de transição de IA</span>
               </li>
               <li className="flex items-center space-x-2">
-                <CheckCircle2 className="w-3.5 h-3.5 text-cyan-600 shrink-0" />
+                <CheckCircle2 className="w-3.5 h-3.5 text-accent-ink shrink-0" />
                 <span>Cria assimetria e pausas orais naturais</span>
               </li>
               <li className="flex items-center space-x-2">
-                <CheckCircle2 className="w-3.5 h-3.5 text-cyan-600 shrink-0" />
+                <CheckCircle2 className="w-3.5 h-3.5 text-accent-ink shrink-0" />
                 <span>Elimina tom corporativo e otimismo sintético</span>
               </li>
             </ul>
@@ -218,7 +218,7 @@ export const VirtualTeamInfo: React.FC<VirtualTeamInfoProps> = ({
           </div>
 
           <div className="bg-surface-raised/80 p-3.5 rounded-panel border border-line/60 space-y-1">
-            <span className="text-cyan-400 font-bold block">2. Análise dos 3 Especialistas</span>
+            <span className="text-accent-ink font-bold block">2. Análise dos 3 Especialistas</span>
             <p className="text-ink-faint">Humanizador, Curador Conceitual e Revisor Clínico emitem pareceres.</p>
           </div>
 
@@ -244,7 +244,7 @@ export const VirtualTeamInfo: React.FC<VirtualTeamInfoProps> = ({
         </div>
         <button
           onClick={onCustomizePrompts}
-          className="px-4 py-2 bg-accent hover:bg-accent text-canvas font-medium text-xs sm:text-sm rounded-control shrink-0 transition-all shadow-xs cursor-pointer"
+          className="px-4 py-2 bg-accent hover:bg-accent-strong text-canvas font-medium text-xs sm:text-sm rounded-control shrink-0 transition-all shadow-xs cursor-pointer"
         >
           Minha Visão de Mundo
         </button>

@@ -248,7 +248,7 @@ export const ManifestoEditor: React.FC<ManifestoEditorProps> = ({ manifesto, onS
               <button
                 type="button"
                 onClick={addKeyword}
-                className="px-3 py-2 bg-accent hover:bg-accent text-canvas font-semibold text-xs rounded-control"
+                className="px-3 py-2 bg-accent hover:bg-accent-strong text-canvas font-semibold text-xs rounded-control"
               >
                 + Adicionar
               </button>
@@ -296,7 +296,7 @@ export const ManifestoEditor: React.FC<ManifestoEditorProps> = ({ manifesto, onS
               <button
                 type="button"
                 onClick={addProhibited}
-                className="px-3 py-2 bg-danger hover:bg-danger text-ink font-semibold text-xs rounded-control"
+                className="px-3 py-2 bg-danger hover:bg-danger/85 text-ink font-semibold text-xs rounded-control"
               >
                 + Bloquear
               </button>
@@ -353,7 +353,7 @@ export const ManifestoEditor: React.FC<ManifestoEditorProps> = ({ manifesto, onS
             <button
               type="button"
               onClick={addCategory}
-              className="px-4 py-2.5 bg-accent hover:bg-accent text-canvas font-bold text-xs rounded-control shadow-xs transition-all cursor-pointer"
+              className="px-4 py-2.5 bg-accent hover:bg-accent-strong text-canvas font-bold text-xs rounded-control shadow-xs transition-all cursor-pointer"
             >
               + Adicionar Eixo
             </button>
@@ -417,7 +417,7 @@ export const ManifestoEditor: React.FC<ManifestoEditorProps> = ({ manifesto, onS
       <div className="flex justify-center pt-2">
         <button
           type="submit"
-          className="px-10 py-4 bg-accent hover:bg-accent text-canvas font-bold text-base rounded-panel shadow-xl flex items-center space-x-3 transition-all cursor-pointer"
+          className="px-10 py-4 bg-accent hover:bg-accent-strong text-canvas font-bold text-base rounded-panel shadow-xl flex items-center space-x-3 transition-all cursor-pointer"
         >
           <Save className="w-5 h-5 text-accent-ink" />
           <span>Salvar Minha Visão de Mundo</span>

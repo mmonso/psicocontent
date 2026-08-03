@@ -131,7 +131,7 @@ export const PublicBlogPortal: React.FC<PublicBlogPortalProps> = ({
               onClick={() => setTheme(isDark ? 'light' : 'dark')}
               className={`p-1.5 rounded-control border flex items-center space-x-1.5 font-medium transition-all cursor-pointer ${
                 isDark
-                  ? 'bg-surface-raised text-accent-ink border-line hover:bg-surface'
+                  ? 'bg-surface-raised text-accent-ink border-line hover:bg-surface-raised'
                   : 'bg-surface-raised text-ink border-line hover:bg-surface-raised'
               }`}
               title={isDark ? 'Mudar para Modo Claro Minimalista' : 'Mudar para Modo Escuro Noturno'}
@@ -173,7 +173,7 @@ export const PublicBlogPortal: React.FC<PublicBlogPortalProps> = ({
             {/* Back to Studio */}
             <button
               onClick={onBackToStudio}
-              className="bg-accent hover:bg-accent text-canvas font-bold px-3 py-1.5 rounded-control transition-all flex items-center space-x-1 cursor-pointer text-xs"
+              className="bg-accent hover:bg-accent-strong text-canvas font-bold px-3 py-1.5 rounded-control transition-all flex items-center space-x-1 cursor-pointer text-xs"
             >
               <ArrowLeft className="w-3.5 h-3.5" />
               <span className="hidden sm:inline">Studio</span>
@@ -373,7 +373,7 @@ export const PublicBlogPortal: React.FC<PublicBlogPortalProps> = ({
               <div className="pt-2 flex flex-wrap items-center justify-between gap-3 border-t border-line">
                 <button
                   onClick={() => handleShare(selectedPost.review?.revisedTitle || '')}
-                  className="bg-surface-raised hover:bg-surface text-ink px-4 py-2 rounded-control text-xs font-bold flex items-center space-x-1.5 transition-all cursor-pointer"
+                  className="bg-surface-raised hover:bg-surface-raised text-ink px-4 py-2 rounded-control text-xs font-bold flex items-center space-x-1.5 transition-all cursor-pointer"
                 >
                   {copiedLink ? <Check className="w-3.5 h-3.5 text-accent-ink" /> : <Share2 className="w-3.5 h-3.5 text-accent-ink" />}
                   <span>{copiedLink ? 'Link Copiado!' : 'Compartilhar Ensaio'}</span>
@@ -381,7 +381,7 @@ export const PublicBlogPortal: React.FC<PublicBlogPortalProps> = ({
 
                 <button
                   onClick={() => setShowExportModal(selectedPost)}
-                  className="bg-accent hover:bg-accent text-canvas px-4 py-2 rounded-control text-xs font-bold flex items-center space-x-1.5 transition-all cursor-pointer"
+                  className="bg-accent hover:bg-accent-strong text-canvas px-4 py-2 rounded-control text-xs font-bold flex items-center space-x-1.5 transition-all cursor-pointer"
                 >
                   <Code2 className="w-3.5 h-3.5 text-accent-ink" />
                   <span>Exportar para WordPress / Ghost</span>
@@ -460,7 +460,7 @@ export const PublicBlogPortal: React.FC<PublicBlogPortalProps> = ({
               </p>
               <button
                 onClick={onBackToStudio}
-                className="bg-accent hover:bg-accent text-canvas font-bold px-6 py-3 rounded-panel text-xs transition-all shadow-md cursor-pointer inline-flex items-center space-x-2"
+                className="bg-accent hover:bg-accent-strong text-canvas font-bold px-6 py-3 rounded-panel text-xs transition-all shadow-md cursor-pointer inline-flex items-center space-x-2"
               >
                 <Sparkles className="w-4 h-4 text-accent-ink" />
                 <span>Criar Meu Primeiro Ensaio Agora</span>
@@ -740,7 +740,7 @@ export const PublicBlogPortal: React.FC<PublicBlogPortalProps> = ({
 
               <button
                 onClick={() => setWebhookSimulated(true)}
-                className="w-full bg-accent hover:bg-accent text-canvas font-sans font-bold py-2.5 rounded-control text-xs transition-all flex items-center justify-center space-x-2 cursor-pointer"
+                className="w-full bg-accent hover:bg-accent-strong text-canvas font-sans font-bold py-2.5 rounded-control text-xs transition-all flex items-center justify-center space-x-2 cursor-pointer"
               >
                 <Send className="w-3.5 h-3.5 text-accent-ink" />
                 <span>Simular Disparo de Webhook para WordPress / Ghost</span>
@@ -760,7 +760,7 @@ export const PublicBlogPortal: React.FC<PublicBlogPortalProps> = ({
                   setShowExportModal(null);
                   setWebhookSimulated(false);
                 }}
-                className="bg-surface-raised hover:bg-surface text-ink font-bold px-5 py-2.5 rounded-control text-xs transition-all cursor-pointer"
+                className="bg-surface-raised hover:bg-surface-raised text-ink font-bold px-5 py-2.5 rounded-control text-xs transition-all cursor-pointer"
               >
                 Fechar
               </button>
