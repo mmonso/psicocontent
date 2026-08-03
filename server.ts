@@ -74,7 +74,7 @@ DIRETRIZES DE CRIAÇÃO:
 ${keyword ? `Foco na palavra-chave ou assunto especificado: "${keyword}".` : ''}
 ${category ? `Categoria ou eixo de interesse: "${category}".` : ''}`;
 
-    const response = await ai.models.generateContent({
+    const response = await withRetry(() => ai.models.generateContent({
       model: 'gemini-3.6-flash',
       contents: userPrompt,
       config: {
@@ -100,7 +100,7 @@ ${category ? `Categoria ou eixo de interesse: "${category}".` : ''}`;
           required: ['topics'],
         },
       },
-    });
+    }), 'gerar-topicos');
 
     const resultText = response.text || '{}';
     const parsed = JSON.parse(resultText);
@@ -192,13 +192,13 @@ ${customWriterPrompt ? `\n=== PEDIDO ESPECÍFICO PARA ESTE TEXTO ===\n${customWr
        geração com título, subtítulo e outline. A atenção do modelo é finita e
        o schema cobrava parte dela. Os metadados agora são extraídos depois,
        numa chamada que lê o texto pronto. */
-    const response = await ai.models.generateContent({
+    const response = await withRetry(() => ai.models.generateContent({
       model: 'gemini-3.6-flash',
       contents: `Escreva o ensaio sobre: "${topic}".
 
 Comece pelo título numa linha iniciada por "# ", depois o subtítulo em itálico numa linha iniciada por "_", e então o texto. Nada além disso — sem preâmbulo, sem comentário sobre o que você vai fazer.`,
       config: { systemInstruction: systemPrompt },
-    });
+    }), 'gerar-rascunho');
 
     const raw = (response.text || '').trim();
 
@@ -234,20 +234,61 @@ Comece pelo título numa linha iniciada por "# ", depois o subtítulo em itálic
 const REVIEW_MODEL = 'gemini-3.6-flash';
 
 /* Uma chamada ao modelo com saída JSON validada por schema. */
+/* Sobrecarga do modelo é transitória por definição — a própria mensagem do 503
+   diz "usually temporary". Tratar como falha definitiva joga fora o artigo
+   inteiro por causa de um pico de demanda de poucos segundos.
+
+   Só reexecuta o que é transitório. Chave inválida, cota estourada ou prompt
+   recusado não melhoram com repetição: falham na hora. */
+const TRANSIENT = /\b(429|500|502|503|504)\b|UNAVAILABLE|RESOURCE_EXHAUSTED|INTERNAL|DEADLINE_EXCEEDED|overloaded|high demand|ECONNRESET|ETIMEDOUT|fetch failed/i;
+
+const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
+export async function withRetry<T>(
+  fn: () => Promise<T>,
+  label: string,
+  attempts = 3
+): Promise<T> {
+  let lastError: any;
+
+  for (let attempt = 1; attempt <= attempts; attempt++) {
+    try {
+      return await fn();
+    } catch (e: any) {
+      lastError = e;
+      const message = e?.message || String(e);
+
+      if (!TRANSIENT.test(message) || attempt === attempts) throw e;
+
+      /* Recuo exponencial com ruído, para várias chamadas paralelas não
+         voltarem todas no mesmo instante e recriarem o pico. */
+      const delay = Math.round(700 * 2 ** (attempt - 1) * (1 + Math.random() * 0.4));
+      console.warn(`[${label}] tentativa ${attempt}/${attempts} falhou (${message.slice(0, 90)}). Nova tentativa em ${delay}ms.`);
+      await sleep(delay);
+    }
+  }
+
+  throw lastError;
+}
+
 async function callJson(
   ai: any,
-  opts: { system: string; user: string; schema: any; model?: string }
+  opts: { system: string; user: string; schema: any; model?: string; label?: string }
 ): Promise<any> {
-  const response = await ai.models.generateContent({
-    model: opts.model || REVIEW_MODEL,
-    contents: opts.user,
-    config: {
-      systemInstruction: opts.system,
-      responseMimeType: 'application/json',
-      responseSchema: opts.schema,
-    },
-  });
-  return JSON.parse(response.text || '{}');
+  const response = await withRetry(
+    () =>
+      ai.models.generateContent({
+        model: opts.model || REVIEW_MODEL,
+        contents: opts.user,
+        config: {
+          systemInstruction: opts.system,
+          responseMimeType: 'application/json',
+          responseSchema: opts.schema,
+        },
+      }),
+    opts.label || 'callJson'
+  );
+  return JSON.parse((response as any).text || '{}');
 }
 
 /* Schema comum aos pareceres. Cada especialista precisa se comprometer com um
@@ -410,7 +451,7 @@ ${customReviewerPrompt ? `\nINSTRUÇÕES ADICIONAIS DO USUÁRIO:\n${customReview
     /* Como no rascunho: a reescrita sai em prosa livre. Ela carregava nove
        campos obrigatórios no mesmo JSON — meta description, hashtags, tags,
        takeaways — competindo com o ensaio pela mesma passada de geração. */
-    const rewriteResponse = await ai.models.generateContent({
+    const rewriteResponse = await withRetry(() => ai.models.generateContent({
       model: REVIEW_MODEL,
       config: { systemInstruction: writerSystem },
       contents: `${draftForReview}
@@ -429,7 +470,7 @@ ${allIssues.length ? `PROBLEMAS CONCRETOS A CORRIGIR:\n- ${allIssues.join('\n- '
 Reescreva o artigo inteiro atendendo aos três pareceres.
 
 Comece pelo título numa linha iniciada por "# ", depois o subtítulo em itálico numa linha iniciada por "_", e então o texto. Nada além disso.`,
-    });
+    }), 'reescrita');
 
     const rewriteRaw = (rewriteResponse.text || '').trim();
     const rewrittenTitle = rewriteRaw.match(/^#\s+(.+)$/m)?.[1]?.trim() || draftTitle;
@@ -559,7 +600,7 @@ app.post('/api/generate-image', async (req, res) => {
     let altTextDesc = '';
 
     // Ask Gemini for a refined concise image prompt in English
-    const promptCraftResponse = await ai.models.generateContent({
+    const promptCraftResponse = await withRetry(() => ai.models.generateContent({
       model: 'gemini-3.6-flash',
       contents: `Gere um prompt em inglês conciso e límpido (máximo 25 palavras) para um gerador de imagem editorial de psicologia:
 TÍTULO: ${title}
@@ -583,7 +624,7 @@ DIRETRIZES DE CRIAÇÃO:
           required: ['imagePromptInEnglish', 'conceptExplanation', 'altText'],
         },
       },
-    });
+    }), 'prompt-de-imagem');
 
     const craftData = JSON.parse(promptCraftResponse.text || '{}');
     finalImagePrompt = craftData.imagePromptInEnglish || `Minimalist editorial illustration for ${title}, soft warm lighting, fine art`;
@@ -652,7 +693,7 @@ INSTRUÇÃO DE MUDANÇA / CORREÇÃO:
 
 ${fullText ? `CONTEXTO AO ENTORNO (APENAS REFERÊNCIA):\n${fullText.slice(0, 1000)}...` : ''}`;
 
-    const response = await ai.models.generateContent({
+    const response = await withRetry(() => ai.models.generateContent({
       model: 'gemini-3.6-flash',
       contents: userPrompt,
       config: {
@@ -667,7 +708,7 @@ ${fullText ? `CONTEXTO AO ENTORNO (APENAS REFERÊNCIA):\n${fullText.slice(0, 100
           required: ['rewrittenText', 'explanation'],
         },
       },
-    });
+    }), 'refinar-selecao');
 
     const parsed = JSON.parse(response.text || '{}');
     res.json({ success: true, data: parsed });
@@ -707,7 +748,7 @@ TÍTULO: ${title}
 CONTEÚDO:
 ${text}`;
 
-    const response = await ai.models.generateContent({
+    const response = await withRetry(() => ai.models.generateContent({
       model: 'gemini-3.6-flash',
       contents: userPrompt,
       config: {
@@ -750,7 +791,7 @@ ${text}`;
           required: ['carousel', 'reelsScript'],
         },
       },
-    });
+    }), 'formatos-derivados');
 
     const parsed = JSON.parse(response.text || '{}');
     res.json({ success: true, data: parsed });
