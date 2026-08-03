@@ -269,6 +269,37 @@ export default function App() {
       setCurrentPost(postWithReview);
       persist(postWithReview);
 
+      /* Portão de qualidade. A auditoria avalia o texto final e o resultado
+         tem consequência: o artigo é marcado e fica fora do Portal Público até
+         que você o revise. Antes existia um ethicsCheckPassed que nenhuma linha
+         de código lia — um veto que não vetava. */
+      const audit = reviewResult.audit;
+      if (audit && !audit.approved) {
+        addToast(
+          'error',
+          'Reprovado na auditoria ética',
+          `${audit.summary} O artigo foi salvo, mas não aparece no Portal Público até ser revisado.`
+        );
+      } else if (audit?.severity === 'menor' && audit.issues?.length) {
+        addToast(
+          'info',
+          'Aprovado com ressalvas',
+          `${audit.issues.length} ponto(s) apontado(s) pelo auditor. Veja em "Parecer do Revisor Clínico".`
+        );
+      }
+
+      /* Um especialista que falhou não conta como aprovação. */
+      const unavailable = Object.values(reviewResult.specialists || {}).filter(
+        (s: any) => s?.failed
+      ).length;
+      if (unavailable > 0) {
+        addToast(
+          'info',
+          `${unavailable} especialista(s) não puderam ser consultados`,
+          'A revisão seguiu com os demais. O parecer está incompleto.'
+        );
+      }
+
       // Etapa 3 — imagem. Falha aqui não derruba o artigo: cai numa capa padrão.
       const selectedStyle =
         VISUAL_STYLES.find((s) => s.id === input.visualStyle) || VISUAL_STYLES[0];
@@ -555,7 +586,11 @@ export default function App() {
               />
             ) : (
               <PublicBlogPortal
-                posts={posts}
+                /* O portão com dentes: reprovado na auditoria não vai ao ar.
+                   Artigos anteriores ao comitê não têm auditoria e passam —
+                   nunca foram avaliados, e barrá-los retroativamente
+                   esvaziaria o Portal sem aviso. */
+                posts={posts.filter((p) => p.review?.audit?.approved !== false)}
                 manifesto={manifesto}
                 onBackToStudio={() => setLibraryView('estudio')}
                 onSelectPostToViewInStudio={openPostInStudio}

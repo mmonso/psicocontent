@@ -142,6 +142,12 @@ app.post('/api/generate-draft', async (req, res) => {
       ? userManifesto.prohibitedTerms.join(', ')
       : 'uso do pronome você, clichês, fórmulas mágicas, 5 passos';
     const writerInst = userManifesto?.writerInstructions || 'Escrever com densidade ensaística e estilo autoral.';
+    const intendedEffect =
+      userManifesto?.intendedEffect ||
+      'O leitor deve terminar o texto mais lento do que começou, com a sensação de ter sido acompanhado e não instruído.';
+    const calibration =
+      userManifesto?.calibrationReferences ||
+      'A régua é o ensaio literário publicado em revista séria, não o post de blog.';
 
     const systemPrompt = `Você é o REDATOR VIRTUAL OFICIAL do(a) profissional de psicologia: ${authorName}.
 Sua missão é escrever o rascunho de um ensaio autoral, profundo e provocativo, fugindo categoricamente de clichês de inteligência artificial e textos genéricos de internet.
@@ -158,61 +164,63 @@ ${targetAudience || userManifesto?.targetAudienceDescription || 'Leitores intere
 === VOCABULÁRIO RECOMENDADO DO AUTOR ===
 ${favKeywords}
 
-=== TERMOS E CONSTRUÇÕES ESTRITAMENTE PROIBIDOS ===
-ABSOLUTAMENTE PROIBIDO USAR OU FAZER: ${probTerms}
+=== O EFEITO PRETENDIDO NO LEITOR ===
+${intendedEffect}
 
-=== DIRETRIZES DE ESCRITA ANTI-GENÉRICA DO AUTOR ===
+=== ONDE ESTÁ A RÉGUA ===
+${calibration}
+
+=== COMO ESTE TEXTO SE COMPORTA ===
 ${writerInst}
 
-=== PARÂMETROS DO ARTIGO ===
-Nível de Profundidade: ${depthLevel}
-Extensão do Texto: ${lengthGuide}
+=== VOCABULÁRIO DA CASA ===
+Palavras e formulações que pertencem a esta voz: ${favKeywords}
 
-=== REGRAS DE OURO CONTRA TEXTO GENÉRICO ===
-1. NUNCA use o pronome "você" nem se dirija diretamente ao leitor ("você sente", "você precisa"). Prefira a 1ª pessoa do plural ("podemos pensar", "vemos aqui") ou construções ensaísticas ("há momentos em que", "observa-se").
-2. NUNCA comece com introduções clichês ("No mundo acelerado de hoje...", "É muito comum sentir..."). Comece imediatamente por uma tensão, paradoxo, cena do cotidiano ou citação implícita.
-3. NUNCA crie listas de "5 passos", "dicas de bem-estar" ou "red flags". Mantenha o texto em prosa fluida, contínua e ensaística.
-4. NUNCA cite nomes de autores ou escolas teóricas diretamente. As referências (Gestalt, fenomenologia, psicanálise, Espinosa) devem surgir assimiladas como modo de pensar e de olhar para o mundo.
-5. NUNCA termine com resumos burocráticos ("Em suma...", "Em conclusão...") ou morais da história. Mantenha o encerramento aberto com uma pergunta provocativa ou tensão existencial.
-6. Mantenha o texto em prosa fluida, densa, contínua e ensaística do início ao fim, evitando FAQs ou sessões artificiais de autoajuda.
+=== O QUE DENUNCIA UM TEXTO FRACO ===
+Se aparecer, o texto falhou: ${probTerms}
 
-${customWriterPrompt ? `\nINSTRUÇÕES ADICIONAIS DO USUÁRIO:\n${customWriterPrompt}` : ''}`;
+=== EXTENSÃO ===
+${lengthGuide}
+Profundidade: ${depthLevel}
+${customWriterPrompt ? `\n=== PEDIDO ESPECÍFICO PARA ESTE TEXTO ===\n${customWriterPrompt}` : ''}`;
 
-    const userPrompt = `Por favor, elabore o artigo completo baseado no tema: "${topic}".`;
+    /* Prosa livre, sem schema JSON.
 
+       Antes o ensaio era um campo entre quatro, produzido com
+       responseMimeType 'application/json' — mil palavras de prosa literária
+       escritas dentro de uma string escapada, dividindo a mesma passada de
+       geração com título, subtítulo e outline. A atenção do modelo é finita e
+       o schema cobrava parte dela. Os metadados agora são extraídos depois,
+       numa chamada que lê o texto pronto. */
     const response = await ai.models.generateContent({
       model: 'gemini-3.6-flash',
-      contents: userPrompt,
-      config: {
-        systemInstruction: systemPrompt,
-        responseMimeType: 'application/json',
-        responseSchema: {
-          type: Type.OBJECT,
-          properties: {
-            title: { type: Type.STRING, description: 'Título provocativo, poético e conceitual do artigo' },
-            subtitle: { type: Type.STRING, description: 'Subtítulo reflexivo' },
-            outline: {
-              type: Type.ARRAY,
-              items: { type: Type.STRING },
-              description: 'Eixos conceituais abordados no artigo',
-            },
-            rawText: { type: Type.STRING, description: 'Texto completo do artigo formatado em Markdown' },
-          },
-          required: ['title', 'subtitle', 'outline', 'rawText'],
-        },
-      },
+      contents: `Escreva o ensaio sobre: "${topic}".
+
+Comece pelo título numa linha iniciada por "# ", depois o subtítulo em itálico numa linha iniciada por "_", e então o texto. Nada além disso — sem preâmbulo, sem comentário sobre o que você vai fazer.`,
+      config: { systemInstruction: systemPrompt },
     });
 
-    const text = response.text || '{}';
-    const parsedData = JSON.parse(text);
+    const raw = (response.text || '').trim();
+
+    /* Extrai título e subtítulo do próprio Markdown. */
+    const titleMatch = raw.match(/^#\s+(.+)$/m);
+    const subtitleMatch = raw.match(/^_(.+)_\s*$/m);
+
+    const title = titleMatch?.[1]?.trim() || topic;
+    const subtitle = subtitleMatch?.[1]?.trim() || '';
+
+    const body = raw
+      .replace(/^#\s+.+$/m, '')
+      .replace(/^_.+_\s*$/m, '')
+      .trim();
 
     res.json({
       success: true,
       data: {
-        title: parsedData.title,
-        subtitle: parsedData.subtitle,
-        outline: parsedData.outline || [],
-        rawText: parsedData.rawText,
+        title,
+        subtitle,
+        outline: [],
+        rawText: body,
         generatedAt: new Date().toISOString(),
       },
     });
@@ -223,6 +231,49 @@ ${customWriterPrompt ? `\nINSTRUÇÕES ADICIONAIS DO USUÁRIO:\n${customWriterPr
 });
 
 // 2. REVISOR CLÍNICO: Revisa e Polir o Artigo + Parecer Ético segundo a Visão de Mundo
+const REVIEW_MODEL = 'gemini-3.6-flash';
+
+/* Uma chamada ao modelo com saída JSON validada por schema. */
+async function callJson(
+  ai: any,
+  opts: { system: string; user: string; schema: any; model?: string }
+): Promise<any> {
+  const response = await ai.models.generateContent({
+    model: opts.model || REVIEW_MODEL,
+    contents: opts.user,
+    config: {
+      systemInstruction: opts.system,
+      responseMimeType: 'application/json',
+      responseSchema: opts.schema,
+    },
+  });
+  return JSON.parse(response.text || '{}');
+}
+
+/* Schema comum aos pareceres. Cada especialista precisa se comprometer com um
+   veredito, não só escrever prosa: sem `approved` e `severity` não há como
+   nenhum portão a jusante decidir coisa alguma. */
+const VERDICT_SCHEMA = {
+  type: Type.OBJECT,
+  properties: {
+    notes: { type: Type.STRING, description: 'Parecer técnico, direto e específico' },
+    approved: {
+      type: Type.BOOLEAN,
+      description: 'false se o texto viola a diretriz desta especialidade de forma relevante',
+    },
+    severity: {
+      type: Type.STRING,
+      description: "'ok' | 'menor' | 'grave' — gravidade do que foi encontrado",
+    },
+    issues: {
+      type: Type.ARRAY,
+      items: { type: Type.STRING },
+      description: 'Problemas concretos encontrados, citando o trecho quando possível',
+    },
+  },
+  required: ['notes', 'approved', 'severity', 'issues'],
+};
+
 app.post('/api/review-draft', async (req, res) => {
   try {
     const ai = getGeminiClient();
@@ -242,97 +293,254 @@ app.post('/api/review-draft', async (req, res) => {
     const humanizerInst = userManifesto?.humanizerInstructions || 'Eliminar marcas de IA, conectores burocráticos e variar o ritmo.';
     const conceptualInst = userManifesto?.conceptualCuratorInstructions || 'Assegurar rigor dos conceitos de Espinosa, Gestalt e Fenomenologia.';
 
-    const systemPrompt = `Você opera como um COMITÊ EDITORIAL E DE REDAÇÃO SÊNIOR para o blog do(a) profissional ${authorName}.
-Este comitê é composto por 3 ESPECIALISTAS AVALIADORES e pelo REDATOR PRINCIPAL, que unifica tudo:
+    /* ---------------------------------------------------------------------
+       FASE 1 — Os três especialistas, em chamadas independentes e paralelas.
 
-=== 1. EDITOR DE HUMANIZAÇÃO & CADÊNCIA TEXTUAL ("DES-AIZADOR") ===
-- Função: Identificar e destruir qualquer vestígio de linguagem robótica, frases de transição de IA ("Além disso", "Portanto", "No entanto", "Vale ressaltar"), simetria mecânica de parágrafos e entusiasmo artificial.
-- Diretrizes do Autor: ${humanizerInst}
-- Saída: Escreva um parecer detalhado no campo "humanizationNotes" indicando os vícios de IA identificados e como o ritmo deve ser humanizado e oxigenado.
+       Antes eram três seções de um mesmo JSON, produzidas pela mesma passada do
+       modelo junto com a reescrita. Três seções de uma resposta não são três
+       perspectivas: não há como discordarem entre si, e o veredito nascia no
+       mesmo fôlego que o texto que ele deveria julgar.
 
-=== 2. CURADOR CONCEITUAL & FILOSÓFICO ("GUARDIÃO DA TEORIA") ===
-- Função: Avaliar a profundidade teórica, fenomenológica e existencial. Garantir que os conceitos do manifesto (Espinosa, Gestalt, crítica social, sentido do sintoma) não sejam superficiais nem slogans de autoajuda.
-- Diretrizes do Autor: ${conceptualInst}
-- Saída: Escreva um parecer detalhado no campo "conceptualNotes" indicando pontos a aprofundar e alinhamento filosófico.
+       Cada um recebe apenas o rascunho e a própria diretriz — nenhum vê o
+       parecer do outro, então a convergência (quando ocorre) significa algo.
+       Rodam em paralelo, de modo que três chamadas custam o tempo da mais
+       lenta, não a soma delas.
+    --------------------------------------------------------------------- */
 
-=== 3. REVISOR CLÍNICO & ÉTICO ("GUARDIÃO ÉTICO") ===
-- Função: Verificar o cumprimento de limites éticos (sem diagnósticos précoces, sem uso direto de 'você', sem conselhos prescritivos).
-- Regras Éticas: ${ethicsRules}
-- Diretrizes: ${reviewerInst}
-- Saída: Escreva seu parecer técnico no campo "clinicalNotes" e o resultado ético em "ethicsDetails".
+    const draftForReview = `TEMA: ${topic}
+TÍTULO: ${draftTitle}
+SUBTÍTULO: ${draftSubtitle}
 
-=== 4. REDATOR PRINCIPAL — REESCRITA E SÍNTESE UNIFICADA (MANDATO ABSOLUTO DE COESÃO) ===
-CRÍTICO: O texto final ("revisedText") NUNCA PODE SER UMA COLCHA DE RETALHOS com retalhos e trechos colados sem nexo.
-O Redator Principal recebe os pareceres dos 3 especialistas acima e REESCREVE O ARTIGO DO ZERO de forma totalmente integrada, fluida, visceral e coesa.
-- Todas as correções de humanização, rigor conceitual e postura clínica devem ser dissolvidas organicamente em uma única voz autoral.
-- O texto final deve ser formatado em Markdown impecável, sem listas numeradas de 5 passos, sem o pronome 'você' e sem clichês.
-- No campo "writerSynthesisNotes", o Redator explica resumidamente como unificou as orientações dos especialistas em uma única narrativa fluida.
-
-${customReviewerPrompt ? `\nINSTRUÇÕES ADICIONAIS DO USUÁRIO PARA A REVISÃO:\n${customReviewerPrompt}` : ''}`;
-
-    const userPrompt = `Realize a análise multidisciplinar pelos 3 especialistas e execute a REESCRITA UNIFICADA E COESA pelo Redator Principal para o seguinte rascunho:
-
-TEMA: ${topic}
-TÍTULO ATUAL: ${draftTitle}
-SUBTÍTULO ATUAL: ${draftSubtitle}
-
-TEXTO RASCUNHO PARA REVISÃO E REESCRITA:
+TEXTO:
 ${draftText}`;
 
-    const response = await ai.models.generateContent({
-      model: 'gemini-3.6-flash',
-      contents: userPrompt,
-      config: {
-        systemInstruction: systemPrompt,
-        responseMimeType: 'application/json',
-        responseSchema: {
-          type: Type.OBJECT,
-          properties: {
-            revisedTitle: { type: Type.STRING, description: 'Título final polido e provocativo' },
-            revisedSubtitle: { type: Type.STRING, description: 'Subtítulo final refinado' },
-            revisedText: { type: Type.STRING, description: 'Texto completamente reescrito e unificado pelo Redator Principal em Markdown, sem clichês, marcas de IA ou "você"' },
-            humanizationNotes: { type: Type.STRING, description: 'Parecer do Editor de Humanização: marcas de IA expurgadas, conectores cortados e ritmo oxigenado' },
-            conceptualNotes: { type: Type.STRING, description: 'Parecer do Curador Conceitual: alinhamento com a visão de mundo, Espinosa, Gestalt e fenomenologia' },
-            clinicalNotes: { type: Type.STRING, description: 'Parecer do Revisor Clínico: adequação ética, ausência de conselhos de autoajuda e limites da prática' },
-            writerSynthesisNotes: { type: Type.STRING, description: 'Explicativo do Redator Principal sobre como fundiu as orientações dos especialistas em uma prosa única e coesa' },
-            ethicsCheckPassed: { type: Type.BOOLEAN },
-            ethicsDetails: { type: Type.STRING, description: 'Comentários sobre a adequação ética e recusa de diagnósticos rasos' },
-            metaDescription: { type: Type.STRING, description: 'Meta descrição para SEO até 155 caracteres' },
-            socialCaption: { type: Type.STRING, description: 'Legenda pronta para redes sociais alinhada ao tom crítico do autor' },
-            hashtags: { type: Type.ARRAY, items: { type: Type.STRING } },
-            suggestedTags: {
-              type: Type.ARRAY,
-              items: { type: Type.STRING },
-              description: '2 a 4 tags temáticas para categorização (ex: Ansiedade, Luto, Relacionamentos, Clínica, Existencialismo, Depressão, Autoestima, Vínculos)',
-            },
-            keyTakeaways: { type: Type.ARRAY, items: { type: Type.STRING } },
-            readingTimeMinutes: { type: Type.NUMBER },
+    const SPECIALISTS = [
+      {
+        key: 'humanization',
+        system: `Você é o EDITOR DE HUMANIZAÇÃO E CADÊNCIA de um blog de psicologia.
+Sua única função é avaliar: o texto soa como pessoa pensando, ou como máquina redigindo?
+
+Procure e aponte: conectores burocráticos ("Além disso", "Portanto", "No entanto", "Vale ressaltar", "É importante destacar"), simetria mecânica de parágrafos, entusiasmo sintético, adjetivação genérica, encerramentos que resumem em vez de abrir.
+
+Duas verificações estruturais, e cada uma sozinha basta para reprovar:
+
+1. ABERTURA. A primeira frase é uma cena concreta, ou é um anúncio abstrato de cena? Reprove se ela começar com "Há", "Existe", "Quando", "No mundo", ou se o sujeito for um substantivo abstrato (fenômeno, questão, experiência, sociedade). "Há um gesto mínimo que revela a mecânica da nossa época" é anúncio, não cena — reprove.
+
+2. FECHO. A última linha é uma pergunta? Se não for, reprove. Se for, verifique se ela depende do que este texto construiu: uma pergunta que caberia em qualquer ensaio sobre o tema é decorativa e também reprova.
+
+Diretrizes do autor: ${humanizerInst}
+
+Seja específico e severo. Cite os trechos. Se o texto está limpo, diga que está limpo — mas não invente elogios para agradar. Reprove (approved: false) quando as marcas de IA comprometerem a leitura.`,
+      },
+      {
+        key: 'conceptual',
+        system: `Você é o CURADOR CONCEITUAL E FILOSÓFICO de um blog de psicologia.
+Sua única função é avaliar o rigor dos conceitos e a fidelidade à visão de mundo do autor.
+
+Visão de mundo do autor:
+${worldview}
+
+Diretrizes do autor: ${conceptualInst}
+
+Verifique se conceitos densos (potência de existir, awareness, contato, sentido do sintoma, sofrimento socialmente produzido) foram reduzidos a slogan ou autoajuda. Verifique se o sofrimento individual está articulado ao contexto social sem responsabilização ingênua.
+
+Seja específico. Reprove (approved: false) quando houver deformação conceitual relevante ou quando o texto virar manual de comportamento.`,
+      },
+      {
+        key: 'clinical',
+        system: `Você é o REVISOR CLÍNICO E ÉTICO de um blog de psicologia, e o mais rigoroso do comitê.
+Sua única função é verificar limites éticos da comunicação clínica.
+
+Regras éticas do autor:
+${ethicsRules}
+
+Diretrizes do autor: ${reviewerInst}
+
+Verifique: diagnóstico de terceiros ou de leitores; patologização de reações humanas normais; promessa de cura ou solução; conselho prescritivo disfarçado; exposição de caso clínico; uso do pronome "você" dirigido ao leitor; solução individual para sofrimento de origem social.
+
+Reprove (approved: false) diante de QUALQUER violação ética, ainda que pontual. Aqui o custo de um falso negativo é maior que o de um falso positivo.`,
+      },
+    ];
+
+    const specialistResults = await Promise.allSettled(
+      SPECIALISTS.map((s) =>
+        callJson(ai, {
+          system: s.system,
+          user: `Avalie o rascunho abaixo dentro da sua especialidade.\n\n${draftForReview}`,
+          schema: VERDICT_SCHEMA,
+        })
+      )
+    );
+
+    /* A falha de um especialista não derruba a produção, mas também não é
+       tratada como aprovação: fica registrada como não avaliada. */
+    const specialists: Record<string, any> = {};
+    SPECIALISTS.forEach((s, i) => {
+      const r = specialistResults[i];
+      specialists[s.key] =
+        r.status === 'fulfilled'
+          ? r.value
+          : {
+              notes: 'Este especialista não pôde ser consultado nesta execução.',
+              approved: null,
+              severity: 'não avaliado',
+              issues: [],
+              failed: true,
+            };
+    });
+
+    const allIssues = Object.values(specialists).flatMap((s: any) => s.issues || []);
+
+    /* ---------------------------------------------------------------------
+       FASE 2 — O redator principal reescreve, com os pareceres em mãos.
+    --------------------------------------------------------------------- */
+
+    const writerSystem = `Você é o REDATOR PRINCIPAL do blog de ${authorName}.
+
+Você recebe um rascunho e os pareceres de três especialistas independentes. Sua tarefa é REESCREVER O ARTIGO DO ZERO, dissolvendo as correções numa única voz autoral.
+
+O texto final NUNCA pode ser uma colcha de retalhos: nada de trechos remendados. As três críticas devem desaparecer dentro de uma prosa contínua.
+
+Visão de mundo do autor:
+${worldview}
+
+Regras inegociáveis: Markdown limpo; sem o pronome "você" dirigido ao leitor; sem listas de passos ou de sinais; sem clichê de autoajuda; encerramento que sustenta uma pergunta em vez de resumir.
+${customReviewerPrompt ? `\nINSTRUÇÕES ADICIONAIS DO USUÁRIO:\n${customReviewerPrompt}` : ''}`;
+
+    /* Como no rascunho: a reescrita sai em prosa livre. Ela carregava nove
+       campos obrigatórios no mesmo JSON — meta description, hashtags, tags,
+       takeaways — competindo com o ensaio pela mesma passada de geração. */
+    const rewriteResponse = await ai.models.generateContent({
+      model: REVIEW_MODEL,
+      config: { systemInstruction: writerSystem },
+      contents: `${draftForReview}
+
+=== PARECER — HUMANIZAÇÃO (${specialists.humanization.severity}) ===
+${specialists.humanization.notes}
+
+=== PARECER — CONCEITUAL (${specialists.conceptual.severity}) ===
+${specialists.conceptual.notes}
+
+=== PARECER — CLÍNICO E ÉTICO (${specialists.clinical.severity}) ===
+${specialists.clinical.notes}
+
+${allIssues.length ? `PROBLEMAS CONCRETOS A CORRIGIR:\n- ${allIssues.join('\n- ')}` : ''}
+
+Reescreva o artigo inteiro atendendo aos três pareceres.
+
+Comece pelo título numa linha iniciada por "# ", depois o subtítulo em itálico numa linha iniciada por "_", e então o texto. Nada além disso.`,
+    });
+
+    const rewriteRaw = (rewriteResponse.text || '').trim();
+    const rewrittenTitle = rewriteRaw.match(/^#\s+(.+)$/m)?.[1]?.trim() || draftTitle;
+    const rewrittenSubtitle = rewriteRaw.match(/^_(.+)_\s*$/m)?.[1]?.trim() || draftSubtitle;
+    const rewrittenBody = rewriteRaw
+      .replace(/^#\s+.+$/m, '')
+      .replace(/^_.+_\s*$/m, '')
+      .trim();
+
+    /* Metadados extraídos numa chamada própria, que lê o texto já pronto.
+       Aqui o schema JSON é apropriado: são dados estruturados, não prosa. */
+    const meta = await callJson(ai, {
+      system:
+        'Você extrai metadados editoriais de um artigo já publicado. Não opine sobre o texto nem o reescreva: apenas descreva o que está lá.',
+      user: `Extraia os metadados do artigo abaixo.\n\nTÍTULO: ${rewrittenTitle}\n\n${rewrittenBody}`,
+      schema: {
+        type: Type.OBJECT,
+        properties: {
+          writerSynthesisNotes: {
+            type: Type.STRING,
+            description: 'Uma ou duas frases sobre o movimento central do texto',
           },
-          required: [
-            'revisedTitle',
-            'revisedSubtitle',
-            'revisedText',
-            'humanizationNotes',
-            'conceptualNotes',
-            'clinicalNotes',
-            'writerSynthesisNotes',
-            'ethicsCheckPassed',
-            'ethicsDetails',
-            'metaDescription',
-            'socialCaption',
-            'hashtags',
-            'keyTakeaways',
-            'readingTimeMinutes',
-          ],
+          metaDescription: { type: Type.STRING, description: 'Meta descrição SEO até 155 caracteres' },
+          socialCaption: { type: Type.STRING, description: 'Legenda para redes sociais, no mesmo tom do texto' },
+          hashtags: { type: Type.ARRAY, items: { type: Type.STRING } },
+          suggestedTags: {
+            type: Type.ARRAY,
+            items: { type: Type.STRING },
+            description: '2 a 4 tags temáticas',
+          },
+          keyTakeaways: { type: Type.ARRAY, items: { type: Type.STRING } },
+          readingTimeMinutes: { type: Type.NUMBER },
         },
+        required: [
+          'writerSynthesisNotes',
+          'metaDescription',
+          'socialCaption',
+          'hashtags',
+          'suggestedTags',
+          'keyTakeaways',
+          'readingTimeMinutes',
+        ],
       },
     });
 
-    const parsed = JSON.parse(response.text || '{}');
+    const rewrite = {
+      ...meta,
+      revisedTitle: rewrittenTitle,
+      revisedSubtitle: rewrittenSubtitle,
+      revisedText: rewrittenBody,
+    };
 
+    /* ---------------------------------------------------------------------
+       FASE 3 — Auditoria do TEXTO FINAL.
+
+       Esta fase não existia, e era o buraco mais sério: os pareceres julgavam
+       o rascunho, mas o que ia ao ar era a reescrita — um texto que nenhum
+       avaliador jamais leu. O auditor recebe apenas o resultado final, sem o
+       rascunho e sem os pareceres, para não herdar a complacência de quem
+       acabou de escrever.
+    --------------------------------------------------------------------- */
+
+    const audit = await callJson(ai, {
+      system: `Você é o AUDITOR FINAL de um blog de psicologia clínica, e é a última instância antes da publicação.
+
+Você recebe um artigo pronto. Não sabe quem o escreveu nem por quantas revisões passou, e isso é proposital: julgue o que está diante de você.
+
+Regras éticas que o texto precisa cumprir:
+${ethicsRules}
+
+Reprove (approved: false) se encontrar: diagnóstico de terceiros ou do leitor; patologização de reação humana normal; promessa de cura; conselho prescritivo; exposição de caso clínico; uso do pronome "você" dirigido ao leitor; solução individual para sofrimento socialmente produzido; ou linguagem de autoajuda.
+
+Sua função é barrar, não elogiar. Um texto medíocre porém ético passa; um texto brilhante porém antiético não passa. Na dúvida sobre uma violação ética, reprove.`,
+      user: `Audite o artigo abaixo para publicação.
+
+TÍTULO: ${rewrite.revisedTitle}
+SUBTÍTULO: ${rewrite.revisedSubtitle}
+
+${rewrite.revisedText}`,
+      schema: {
+        type: Type.OBJECT,
+        properties: {
+          approved: { type: Type.BOOLEAN, description: 'O artigo pode ser publicado?' },
+          ethicsCheckPassed: { type: Type.BOOLEAN, description: 'Cumpre todas as regras éticas?' },
+          severity: { type: Type.STRING, description: "'ok' | 'menor' | 'grave'" },
+          summary: { type: Type.STRING, description: 'Veredito em uma ou duas frases' },
+          issues: {
+            type: Type.ARRAY,
+            items: { type: Type.STRING },
+            description: 'Cada violação encontrada, citando o trecho',
+          },
+        },
+        required: ['approved', 'ethicsCheckPassed', 'severity', 'summary', 'issues'],
+      },
+    });
+
+    /* Compatibilidade: a interface e os artigos já salvos leem os campos
+       antigos. Eles continuam existindo, agora alimentados pelos pareceres
+       independentes. */
     res.json({
       success: true,
-      data: parsed,
+      data: {
+        ...rewrite,
+        humanizationNotes: specialists.humanization.notes,
+        conceptualNotes: specialists.conceptual.notes,
+        clinicalNotes: specialists.clinical.notes,
+        ethicsDetails: audit.summary,
+        ethicsCheckPassed: audit.ethicsCheckPassed,
+        specialists,
+        audit,
+      },
     });
   } catch (error: any) {
     console.error('Error reviewing draft:', error);

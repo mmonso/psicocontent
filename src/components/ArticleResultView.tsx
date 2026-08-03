@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { ArticlePost, DerivedFormats } from '../types';
 import { getStoredManifesto } from '../lib/storage';
+import { Button, Badge } from './ui';
 import {
   Copy,
   Check,
@@ -594,64 +595,84 @@ export const ArticleResultView: React.FC<ArticleResultViewProps> = ({
     <div className="max-w-5xl mx-auto space-y-6 py-4 animate-fade-in">
       
       {/* Top Banner Action Bar */}
-      <div className="bg-surface rounded-panel p-4 sm:p-6 border border-line shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-        <div>
-          <div className="flex items-center space-x-2 text-xs font-semibold text-accent-ink uppercase tracking-wider">
-            <Sparkles className="w-4 h-4 text-accent-ink shrink-0" />
-            <span>Artigo Concluído</span>
-            <span className="text-ink-muted">•</span>
-            <span className="text-ink-faint truncate max-w-[150px] sm:max-w-none">{post.approachName || post.tone || 'Visão do Autor'}</span>
+      {/* Banner do topo.
+          O contêiner quebra linha e o bloco de texto tem largura mínima: quando
+          título e ações não cabem lado a lado, os botões descem inteiros para a
+          linha de baixo. Sem esse piso, o título era espremido até uma palavra
+          por linha e os botões passavam por cima; com uma quebra por breakpoint
+          fixo, sempre haveria uma faixa de largura em que o encaixe falha. */}
+      <div className="bg-surface rounded-panel p-4 sm:p-6 border border-line shadow-sm flex flex-wrap items-center justify-between gap-x-6 gap-y-4">
+        <div className="min-w-[15rem] flex-1">
+          <div className="flex items-center gap-2 text-xs font-semibold text-accent-ink uppercase tracking-wider">
+            <Sparkles className="w-4 h-4 shrink-0" aria-hidden="true" />
+            <span className="shrink-0">Artigo concluído</span>
+            {post.approachName && (
+              <>
+                <span className="text-ink-muted shrink-0" aria-hidden="true">
+                  •
+                </span>
+                {/* post.tone é o parágrafo de instrução de voz do manifesto, não
+                    um rótulo — ele fica no title, e aqui entra a abordagem. */}
+                <span className="text-ink-faint truncate" title={post.tone}>
+                  {post.approachName}
+                </span>
+              </>
+            )}
           </div>
-          <h2 className="font-serif font-bold text-lg sm:text-2xl text-ink mt-1 leading-tight">
+          <h2 className="font-serif font-bold text-lg sm:text-2xl text-ink mt-1 leading-tight text-balance">
             {displayedTitle}
           </h2>
         </div>
 
         {/* Copy / PDF / Multiformat Action Buttons */}
-        <div className="flex flex-wrap items-center gap-2 w-full md:w-auto">
-          <button
+        {/* Usa o primitivo compartilhado: hover, foco e contraste vêm de um
+            lugar só. As classes manuais daqui tinham ficado com hover:bg igual
+            ao bg normal — visualmente inertes — e ícones em text-accent-ink
+            sobre fundo de acento. */}
+        <div className="flex flex-wrap items-center gap-2 shrink-0">
+          <Button
+            variant="primary"
+            size="sm"
+            icon={Printer}
             onClick={handleDownloadPDF}
-            className="flex-1 md:flex-none px-3.5 py-2 bg-accent hover:bg-accent text-canvas text-xs font-semibold rounded-control flex items-center justify-center space-x-1.5 shadow-xs transition-all cursor-pointer min-h-[40px]"
             title="Exportar documento PDF pronto para impressão ou envio a pacientes"
           >
-            <Printer className="w-4 h-4 text-accent-ink" />
-            <span>Baixar PDF</span>
-          </button>
+            Baixar PDF
+          </Button>
 
-          <button
+          <Button
+            variant="secondary"
+            size="sm"
+            icon={Layers}
             onClick={() => setActiveTab('multiformat')}
-            className="flex-1 md:flex-none px-3.5 py-2 bg-accent-soft hover:bg-accent-soft text-accent-ink text-xs font-semibold rounded-control border border-accent/40 flex items-center justify-center space-x-1.5 transition-all cursor-pointer min-h-[40px]"
           >
-            <Layers className="w-4 h-4 text-accent-ink" />
-            <span>Carrossel & Reels</span>
-          </button>
+            Carrossel &amp; Reels
+          </Button>
 
           {onClonePost && (
-            <button
+            <Button
+              variant="secondary"
+              size="sm"
+              icon={Copy}
               onClick={() => onClonePost(post)}
-              className="flex-1 md:flex-none px-3 py-2 bg-surface-raised hover:bg-surface-raised text-ink text-xs font-semibold rounded-control flex items-center justify-center space-x-1.5 transition-all cursor-pointer min-h-[40px]"
               title="Criar uma cópia para modificações"
             >
-              <Copy className="w-4 h-4 text-ink-muted" />
-              <span>Clonar Artigo</span>
-            </button>
+              Clonar artigo
+            </Button>
           )}
 
-          <button
+          <Button
+            variant="secondary"
+            size="sm"
+            icon={Edit3}
             onClick={() => setIsEditingText(!isEditingText)}
-            className="flex-1 md:flex-none px-3.5 py-2 bg-surface-raised hover:bg-surface-raised text-ink text-xs font-semibold rounded-control flex items-center justify-center space-x-1.5 transition-all cursor-pointer min-h-[40px]"
           >
-            <Edit3 className="w-4 h-4 text-ink-muted" />
-            <span>{isEditingText ? 'Ocultar Editor' : 'Editar no Teclado'}</span>
-          </button>
+            {isEditingText ? 'Ocultar editor' : 'Editar no teclado'}
+          </Button>
 
-          <button
-            onClick={downloadArticle}
-            className="w-full sm:w-auto px-3.5 py-2 bg-accent hover:bg-accent text-canvas text-xs font-semibold rounded-control flex items-center justify-center space-x-1.5 shadow-sm transition-all cursor-pointer min-h-[40px]"
-          >
-            <Download className="w-4 h-4" />
-            <span>Baixar .MD</span>
-          </button>
+          <Button variant="secondary" size="sm" icon={Download} onClick={downloadArticle}>
+            Baixar .MD
+          </Button>
         </div>
       </div>
 
@@ -721,13 +742,13 @@ export const ArticleResultView: React.FC<ArticleResultViewProps> = ({
           onClick={() => setActiveTab('reactexport')}
           className={`pb-3 text-xs sm:text-sm font-semibold flex items-center space-x-2 border-b-2 transition-all whitespace-nowrap ${
             activeTab === 'reactexport'
-              ? 'border-cyan-600 text-cyan-900 font-bold'
+              ? 'border-accent/40 text-accent-ink font-bold'
               : 'border-transparent text-ink-faint hover:text-ink'
           }`}
         >
-          <Code className="w-4 h-4 text-cyan-600" />
+          <Code className="w-4 h-4 text-accent-ink" />
           <span>Exportar para Blog React</span>
-          <span className="bg-cyan-100 text-cyan-800 text-[9px] font-bold px-1.5 py-0.5 rounded-full uppercase">JSX/JSON</span>
+          <span className="bg-accent-soft text-accent-ink text-[9px] font-bold px-1.5 py-0.5 rounded-full uppercase">JSX/JSON</span>
         </button>
       </div>
 
@@ -745,7 +766,7 @@ export const ArticleResultView: React.FC<ArticleResultViewProps> = ({
                   className={`px-3 py-1 rounded-control font-semibold transition-all cursor-pointer ${
                     viewingVersion === 'revised'
                       ? 'bg-accent text-canvas shadow-xs'
-                      : 'text-ink-muted hover:text-ink'
+                      : 'text-ink-muted'
                   }`}
                 >
                   ✨ Versão Revisada (Final)
@@ -783,7 +804,7 @@ export const ArticleResultView: React.FC<ArticleResultViewProps> = ({
               </div>
               <button
                 onClick={handleRestoreDraftAsRevised}
-                className="px-3.5 py-1.5 bg-accent hover:bg-accent text-canvas font-bold rounded-control flex items-center space-x-1 transition-all shadow-xs shrink-0 cursor-pointer"
+                className="px-3.5 py-1.5 bg-accent text-canvas font-bold rounded-control flex items-center space-x-1 transition-all shadow-xs shrink-0 cursor-pointer"
               >
                 <RotateCcw className="w-3.5 h-3.5" />
                 <span>Restaurar Rascunho como Texto Ativo</span>
@@ -802,7 +823,7 @@ export const ArticleResultView: React.FC<ArticleResultViewProps> = ({
                 <div className="flex items-center space-x-2">
                   <button
                     onClick={handleSaveEdits}
-                    className="px-4 py-1.5 bg-accent hover:bg-accent text-canvas font-bold text-xs rounded-control flex items-center space-x-1 transition-all cursor-pointer shadow-xs"
+                    className="px-4 py-1.5 bg-accent text-canvas font-bold text-xs rounded-control flex items-center space-x-1 transition-all cursor-pointer shadow-xs"
                   >
                     <Save className="w-3.5 h-3.5 text-accent-ink" />
                     <span>Salvar Alterações</span>
@@ -858,8 +879,8 @@ export const ArticleResultView: React.FC<ArticleResultViewProps> = ({
           {/* Article Header Details */}
           <div className="space-y-4 max-w-3xl mx-auto text-center">
             <div className="inline-flex flex-wrap items-center justify-center gap-2 bg-surface-raised px-3.5 py-1.5 rounded-full text-xs font-semibold text-ink-muted">
-              <span>{post.approachName || post.tone || 'Visão do Autor'}</span>
-              <span>•</span>
+              <span title={post.tone}>{post.approachName || 'Visão do autor'}</span>
+              <span aria-hidden="true">•</span>
               <span className="flex items-center space-x-1">
                 <Clock className="w-3 h-3 text-ink-faint" />
                 <span>{post.review?.readingTimeMinutes || 4} min de leitura</span>
@@ -921,7 +942,7 @@ export const ArticleResultView: React.FC<ArticleResultViewProps> = ({
               ) : (
                 <button
                   onClick={() => setShowTagInput(true)}
-                  className="bg-accent-soft hover:bg-accent-soft text-accent-ink text-xs font-semibold px-2.5 py-1 rounded-control border border-accent/40 flex items-center space-x-1 transition-all cursor-pointer"
+                  className="bg-accent-soft text-accent-ink text-xs font-semibold px-2.5 py-1 rounded-control border border-accent/40 flex items-center space-x-1 transition-all cursor-pointer"
                 >
                   <Plus className="w-3 h-3 text-accent-ink" />
                   <span>Tag</span>
@@ -987,7 +1008,7 @@ export const ArticleResultView: React.FC<ArticleResultViewProps> = ({
                   <button
                     onClick={() => onRegenerateImage(selectedStyleForRegen)}
                     disabled={isRegeneratingImage}
-                    className="px-3.5 py-1.5 bg-accent hover:bg-accent text-canvas font-semibold rounded-control flex items-center space-x-1.5 transition-all shadow-xs disabled:opacity-50 cursor-pointer min-h-[36px]"
+                    className="px-3.5 py-1.5 bg-accent text-canvas font-semibold rounded-control flex items-center space-x-1.5 transition-all shadow-xs disabled:opacity-50 cursor-pointer min-h-[36px]"
                   >
                     <RefreshCw className={`w-3.5 h-3.5 ${isRegeneratingImage ? 'animate-spin' : ''}`} />
                     <span>{isRegeneratingImage ? 'Gerando Imagem...' : 'Regerar Imagem'}</span>
@@ -1081,7 +1102,7 @@ export const ArticleResultView: React.FC<ArticleResultViewProps> = ({
                         type="button"
                         onClick={() => executeRefineSelection()}
                         disabled={isRefiningSelection || !customRefineInstruction.trim()}
-                        className="px-4 py-2 bg-accent hover:bg-accent text-canvas font-bold text-xs rounded-control transition-all shadow-md flex items-center justify-center space-x-1.5 disabled:opacity-50 cursor-pointer shrink-0"
+                        className="px-4 py-2 bg-accent text-canvas font-bold text-xs rounded-control transition-all shadow-md flex items-center justify-center space-x-1.5 disabled:opacity-50 cursor-pointer shrink-0"
                       >
                         {isRefiningSelection ? (
                           <>
@@ -1281,7 +1302,7 @@ export const ArticleResultView: React.FC<ArticleResultViewProps> = ({
                         addToast('success', 'Perguntas copiadas!', 'Prontas para envio ao paciente ou anotação pessoal.');
                       }
                     }}
-                    className="px-3 py-1.5 bg-accent hover:bg-accent text-canvas font-bold text-xs rounded-control flex items-center space-x-1.5 transition-all shadow-xs cursor-pointer shrink-0"
+                    className="px-3 py-1.5 bg-accent text-canvas font-bold text-xs rounded-control flex items-center space-x-1.5 transition-all shadow-xs cursor-pointer shrink-0"
                   >
                     {copiedField === 'reflection_questions' ? <Check className="w-3.5 h-3.5 text-ink" /> : <Copy className="w-3.5 h-3.5 text-ink" />}
                     <span>{copiedField === 'reflection_questions' ? 'Copiado!' : 'Copiar Perguntas'}</span>
@@ -1358,7 +1379,7 @@ export const ArticleResultView: React.FC<ArticleResultViewProps> = ({
               <button
                 onClick={handleGenerateDerivedFormats}
                 disabled={isGeneratingDerived}
-                className="w-full sm:w-auto px-4 py-2.5 bg-accent hover:bg-accent text-canvas font-bold text-xs sm:text-sm rounded-control shadow-md flex items-center justify-center space-x-2 transition-all cursor-pointer min-h-[40px] disabled:opacity-50"
+                className="w-full sm:w-auto px-4 py-2.5 bg-accent text-canvas font-bold text-xs sm:text-sm rounded-control shadow-md flex items-center justify-center space-x-2 transition-all cursor-pointer min-h-[40px] disabled:opacity-50"
               >
                 {isGeneratingDerived ? (
                   <>
@@ -1438,7 +1459,7 @@ export const ArticleResultView: React.FC<ArticleResultViewProps> = ({
                             .join('\n---\n\n');
                           handleCopyText(fullText, 'full_carousel');
                         }}
-                        className="px-3.5 py-1.5 bg-accent hover:bg-accent text-canvas font-bold text-xs rounded-control flex items-center space-x-1.5 transition-all cursor-pointer shadow-xs min-h-[36px]"
+                        className="px-3.5 py-1.5 bg-accent text-canvas font-bold text-xs rounded-control flex items-center space-x-1.5 transition-all cursor-pointer shadow-xs min-h-[36px]"
                       >
                         {copiedField === 'full_carousel' ? <Check className="w-3.5 h-3.5 text-accent-ink" /> : <Copy className="w-3.5 h-3.5" />}
                         <span>{copiedField === 'full_carousel' ? 'Copiado!' : 'Copiar Carrossel Inteiro'}</span>
@@ -1530,7 +1551,7 @@ export const ArticleResultView: React.FC<ArticleResultViewProps> = ({
                             const scriptText = `[GANCHO INICIAL (0-3s)]\n"${derivedFormats.reelsScript!.hook}"\n\n[FALA PRINCIPAL]\n${derivedFormats.reelsScript!.coreNarrative}\n\n[ORIENTAÇÕES VISUAIS]\n${derivedFormats.reelsScript!.visualInstructions || ''}\n\n[CHAMADA REFLEXIVA]\n"${derivedFormats.reelsScript!.callToReflection}"`;
                             handleCopyText(scriptText, 'reels_full_script');
                           }}
-                          className="px-3.5 py-1.5 bg-accent hover:bg-accent text-canvas font-bold text-xs rounded-control flex items-center space-x-1.5 transition-all cursor-pointer shadow-sm"
+                          className="px-3.5 py-1.5 bg-accent text-canvas font-bold text-xs rounded-control flex items-center space-x-1.5 transition-all cursor-pointer shadow-sm"
                         >
                           {copiedField === 'reels_full_script' ? <Check className="w-3.5 h-3.5 text-ink" /> : <Copy className="w-3.5 h-3.5" />}
                           <span>{copiedField === 'reels_full_script' ? 'Roteiro Copiado!' : 'Copiar Roteiro de Vídeo'}</span>
@@ -1600,7 +1621,7 @@ export const ArticleResultView: React.FC<ArticleResultViewProps> = ({
 
               <button
                 onClick={() => handleCopyText(post.review?.socialCaption || '', 'social_caption')}
-                className="px-3 py-1.5 bg-accent-soft hover:bg-accent-soft text-accent-ink text-xs font-semibold rounded-control flex items-center space-x-1 cursor-pointer"
+                className="px-3 py-1.5 bg-accent-soft text-accent-ink text-xs font-semibold rounded-control flex items-center space-x-1 cursor-pointer"
               >
                 {copiedField === 'social_caption' ? <Check className="w-3.5 h-3.5 text-accent-ink" /> : <Copy className="w-3.5 h-3.5" />}
                 <span>{copiedField === 'social_caption' ? 'Copiado!' : 'Copiar Legenda'}</span>
@@ -1633,7 +1654,7 @@ export const ArticleResultView: React.FC<ArticleResultViewProps> = ({
 
               <button
                 onClick={() => handleCopyText(post.review?.metaDescription || '', 'meta_desc')}
-                className="px-3 py-1.5 bg-surface-raised hover:bg-surface-raised text-ink text-xs font-semibold rounded-control flex items-center space-x-1 cursor-pointer"
+                className="px-3 py-1.5 bg-surface-raised text-ink text-xs font-semibold rounded-control flex items-center space-x-1 cursor-pointer"
               >
                 {copiedField === 'meta_desc' ? <Check className="w-3.5 h-3.5 text-accent-ink" /> : <Copy className="w-3.5 h-3.5" />}
                 <span>{copiedField === 'meta_desc' ? 'Copiado!' : 'Copiar Meta'}</span>
@@ -1659,7 +1680,7 @@ export const ArticleResultView: React.FC<ArticleResultViewProps> = ({
             <div className="flex items-center space-x-2">
               <button
                 onClick={() => setIsEditingText(!isEditingText)}
-                className="px-3 py-1.5 bg-accent-soft hover:bg-accent-soft text-accent-ink border border-accent/40 text-xs font-semibold rounded-control flex items-center space-x-1 cursor-pointer"
+                className="px-3 py-1.5 bg-accent-soft text-accent-ink border border-accent/40 text-xs font-semibold rounded-control flex items-center space-x-1 cursor-pointer"
               >
                 <Edit3 className="w-3.5 h-3.5 text-accent-ink" />
                 <span>{isEditingText ? 'Visualizar Texto' : 'Modo Edição Directa'}</span>
@@ -1667,7 +1688,7 @@ export const ArticleResultView: React.FC<ArticleResultViewProps> = ({
 
               <button
                 onClick={() => handleCopyText(editedText || post.review?.revisedText || post.draft?.rawText || '', 'raw_markdown')}
-                className="px-3 py-1.5 bg-surface-raised hover:bg-surface-raised text-ink text-xs font-semibold rounded-control flex items-center space-x-1 cursor-pointer"
+                className="px-3 py-1.5 bg-surface-raised text-ink text-xs font-semibold rounded-control flex items-center space-x-1 cursor-pointer"
               >
                 {copiedField === 'raw_markdown' ? <Check className="w-3.5 h-3.5 text-accent-ink" /> : <Copy className="w-3.5 h-3.5" />}
                 <span>{copiedField === 'raw_markdown' ? 'Copiado!' : 'Copiar Markdown'}</span>
@@ -1721,58 +1742,142 @@ export const ArticleResultView: React.FC<ArticleResultViewProps> = ({
         <div className="space-y-6">
           <div className="bg-surface rounded-panel p-6 border border-line shadow-sm space-y-6">
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 border-b border-line pb-4">
-              <div className="flex items-center space-x-2 text-accent-ink font-bold text-base">
+              <div className="flex items-center space-x-2 text-ink font-bold text-base">
                 <ShieldCheck className="w-5 h-5 text-accent-ink" />
-                <h3>Pareceres da Equipe Editorial & Síntese Coesa do Redator</h3>
-              </div>
-              <span className="bg-accent-soft text-accent-ink text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-wider border border-accent/40">
-                5 Agentes em Ação
-              </span>
-            </div>
-
-            {/* Ethics check status badge */}
-            <div className="flex items-center space-x-3 p-3.5 bg-accent-soft border border-accent/40 rounded-control">
-              <Check className="w-5 h-5 text-accent-ink shrink-0" />
-              <div className="text-xs text-accent-ink">
-                <span className="font-bold">Filtro Ético & Prática Clínica Aprovados</span>
-                <p className="text-accent-ink mt-0.5">{post.review.ethicsDetails}</p>
+                <h3>Pareceres do comitê e auditoria final</h3>
               </div>
             </div>
 
-            {/* Grid of Specialist Reports */}
+            {/* Veredito da auditoria.
+                Este bloco exibia "Filtro Ético & Prática Clínica Aprovados" com
+                um check verde fixo no código, independentemente do resultado —
+                uma aprovação fabricada. Agora reflete a auditoria de verdade, e
+                distingue os três estados possíveis, inclusive "não auditado",
+                para os artigos gerados antes do comitê. */}
+            {(() => {
+              const audit = post.review.audit;
+
+              if (!audit) {
+                return (
+                  <div className="flex items-start gap-3 p-3.5 bg-surface-sunken border border-line rounded-control">
+                    <AlertCircle className="w-5 h-5 text-ink-faint shrink-0 mt-0.5" aria-hidden="true" />
+                    <div className="text-xs">
+                      <p className="font-semibold text-ink">Artigo não auditado</p>
+                      <p className="text-ink-muted mt-0.5">
+                        Gerado antes da auditoria final existir. Nada verificou o texto publicado.
+                      </p>
+                    </div>
+                  </div>
+                );
+              }
+
+              const reproved = !audit.approved;
+              return (
+                <div
+                  className={`flex items-start gap-3 p-3.5 rounded-control border ${
+                    reproved
+                      ? 'bg-danger-soft border-danger/40'
+                      : 'bg-success-soft border-success/30'
+                  }`}
+                >
+                  {reproved ? (
+                    <X className="w-5 h-5 text-danger shrink-0 mt-0.5" aria-hidden="true" />
+                  ) : (
+                    <Check className="w-5 h-5 text-success shrink-0 mt-0.5" aria-hidden="true" />
+                  )}
+                  <div className="text-xs min-w-0 space-y-1.5">
+                    <p className={`font-semibold ${reproved ? 'text-danger-ink' : 'text-success-ink'}`}>
+                      {reproved
+                        ? 'Reprovado na auditoria — fora do Portal Público'
+                        : 'Aprovado para publicação'}
+                      {audit.severity && audit.severity !== 'ok' && ` · ${audit.severity}`}
+                    </p>
+                    <p className="text-ink-muted leading-relaxed">{audit.summary}</p>
+                    {audit.issues?.length > 0 && (
+                      <ul className="list-disc pl-4 space-y-1 text-ink-muted">
+                        {audit.issues.map((issue, i) => (
+                          <li key={i}>{issue}</li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
+                </div>
+              );
+            })()}
+
+            {/* Pareceres dos especialistas.
+                Cada um é uma chamada independente ao modelo: nenhum vê o
+                parecer do outro, então podem de fato divergir. O veredito
+                aparece ao lado do nome — antes só havia prosa, sem posição. */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {/* Report 1: Editor de Humanização */}
-              <div className="bg-cyan-50/50 border border-cyan-200 rounded-panel p-4 space-y-2">
-                <div className="flex items-center space-x-2 text-cyan-950 font-bold text-xs sm:text-sm">
-                  <Wand2 className="w-4 h-4 text-cyan-700 shrink-0" />
-                  <span>Editor de Humanização (O "Des-AIzador")</span>
-                </div>
-                <p className="text-xs text-ink leading-relaxed font-sans">
-                  {post.review.humanizationNotes || 'Auditoria de ritmo e remoção de conectores mecânicos de IA realizada.'}
-                </p>
-              </div>
+              {[
+                {
+                  key: 'humanization' as const,
+                  icon: Wand2,
+                  label: 'Editor de humanização',
+                  notes: post.review.humanizationNotes,
+                },
+                {
+                  key: 'conceptual' as const,
+                  icon: BookOpen,
+                  label: 'Curador conceitual',
+                  notes: post.review.conceptualNotes,
+                },
+                {
+                  key: 'clinical' as const,
+                  icon: ShieldCheck,
+                  label: 'Revisor clínico e ético',
+                  notes: post.review.clinicalNotes,
+                },
+              ].map(({ key, icon: Icon, label, notes }) => {
+                const verdict = post.review?.specialists?.[key];
+                const tone =
+                  verdict?.approved === false
+                    ? 'border-danger/40 bg-danger-soft/40'
+                    : verdict?.failed
+                      ? 'border-line bg-surface-sunken'
+                      : 'border-line bg-surface-sunken';
 
-              {/* Report 2: Curador Conceitual */}
-              <div className="bg-accent-soft/50 border border-accent/40 rounded-panel p-4 space-y-2">
-                <div className="flex items-center space-x-2 text-accent-ink font-bold text-xs sm:text-sm">
-                  <BookOpen className="w-4 h-4 text-accent-ink shrink-0" />
-                  <span>Curador Conceitual (O "Guardião da Teoria")</span>
-                </div>
-                <p className="text-xs text-ink leading-relaxed font-sans">
-                  {post.review.conceptualNotes || 'Alinhamento com a visão de mundo e conceitos filosóficos/existenciais validado.'}
-                </p>
-              </div>
+                return (
+                  <div key={key} className={`border rounded-panel p-4 space-y-2 ${tone}`}>
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="flex items-center gap-2 text-ink font-semibold text-xs sm:text-sm min-w-0">
+                        <Icon className="w-4 h-4 text-ink-muted shrink-0" aria-hidden="true" />
+                        <span className="truncate">{label}</span>
+                      </div>
+                      {verdict && (
+                        <Badge
+                          tone={
+                            verdict.approved === false
+                              ? 'danger'
+                              : verdict.approved === null
+                                ? 'neutral'
+                                : 'success'
+                          }
+                        >
+                          {verdict.approved === false
+                            ? 'reprovou'
+                            : verdict.approved === null
+                              ? 'indisponível'
+                              : 'aprovou'}
+                        </Badge>
+                      )}
+                    </div>
 
-              {/* Report 3: Revisor Clínico */}
-              <div className="bg-accent-soft/50 border border-accent/40 rounded-panel p-4 space-y-2">
-                <div className="flex items-center space-x-2 text-accent-ink font-bold text-xs sm:text-sm">
-                  <ShieldCheck className="w-4 h-4 text-accent-ink shrink-0" />
-                  <span>Revisor Clínico & Ético</span>
-                </div>
-                <p className="text-xs text-ink leading-relaxed font-sans">
-                  {post.review.clinicalNotes}
-                </p>
-              </div>
+                    <p className="text-xs text-ink-muted leading-relaxed font-sans">
+                      {notes || 'Sem parecer registrado.'}
+                    </p>
+
+                    {verdict?.issues?.length > 0 && (
+                      <ul className="list-disc pl-4 space-y-1 text-[11px] text-ink-faint">
+                        {verdict.issues.map((issue, i) => (
+                          <li key={i}>{issue}</li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
+                );
+              })}
 
               {/* Report 4: Redator Principal - Síntese Unificada */}
               <div className="bg-accent-soft/80 border border-accent/40 rounded-panel p-4 space-y-2 md:col-span-2">
@@ -1819,7 +1924,7 @@ export const ArticleResultView: React.FC<ArticleResultViewProps> = ({
                     type="button"
                     onClick={handleReReview}
                     disabled={isReReviewing}
-                    className="px-4 py-2.5 bg-accent hover:bg-accent text-canvas font-bold text-xs rounded-control shadow-xs flex items-center space-x-2 transition-all disabled:opacity-50 cursor-pointer"
+                    className="px-4 py-2.5 bg-accent text-canvas font-bold text-xs rounded-control shadow-xs flex items-center space-x-2 transition-all disabled:opacity-50 cursor-pointer"
                   >
                     {isReReviewing ? (
                       <>
@@ -1847,8 +1952,8 @@ export const ArticleResultView: React.FC<ArticleResultViewProps> = ({
           <div className="bg-surface rounded-panel p-6 sm:p-8 border border-line shadow-sm space-y-6">
             <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 border-b border-line pb-4">
               <div>
-                <div className="flex items-center space-x-2 text-cyan-950 font-bold text-lg">
-                  <Code className="w-5 h-5 text-cyan-600 shrink-0" />
+                <div className="flex items-center space-x-2 text-accent-ink font-bold text-lg">
+                  <Code className="w-5 h-5 text-accent-ink shrink-0" />
                   <h2>Exportação Direta para Blog React</h2>
                 </div>
                 <p className="text-xs text-ink-muted mt-1">
@@ -1856,8 +1961,8 @@ export const ArticleResultView: React.FC<ArticleResultViewProps> = ({
                 </p>
               </div>
 
-              <span className="bg-cyan-50 border border-cyan-200 text-cyan-900 text-xs font-semibold px-3 py-1.5 rounded-control flex items-center space-x-1.5">
-                <Globe className="w-3.5 h-3.5 text-cyan-600" />
+              <span className="bg-accent-soft border border-accent/40 text-accent-ink text-xs font-semibold px-3 py-1.5 rounded-control flex items-center space-x-1.5">
+                <Globe className="w-3.5 h-3.5 text-accent-ink" />
                 <span>Compatível com React 18 / Next.js / Tailwind</span>
               </span>
             </div>
@@ -1872,7 +1977,7 @@ export const ArticleResultView: React.FC<ArticleResultViewProps> = ({
                     : 'text-ink-muted hover:text-ink hover:bg-surface-raised/60'
                 }`}
               >
-                <FileCode className="w-4 h-4 text-cyan-400" />
+                <FileCode className="w-4 h-4 text-accent-ink" />
                 <span>Componente React (.tsx)</span>
               </button>
 
@@ -2095,7 +2200,7 @@ ${displayedText}
                 <div className="space-y-4">
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 bg-surface text-ink p-4 rounded-t-2xl">
                     <div>
-                      <h3 className="font-bold text-sm text-cyan-300">{formatTitle}</h3>
+                      <h3 className="font-bold text-sm text-accent-ink">{formatTitle}</h3>
                       <p className="text-xs text-ink-faint mt-0.5">{formatDescription}</p>
                     </div>
 
@@ -2106,7 +2211,7 @@ ${displayedText}
                           addToast('success', 'Código do artigo copiado!', `O código no formato ${reactExportFormat.toUpperCase()} está na sua área de transferência.`);
                         }
                       }}
-                      className="px-4 py-2 bg-cyan-500 hover:bg-cyan-600 text-ink font-bold text-xs rounded-control flex items-center space-x-1.5 transition-all shadow-md cursor-pointer shrink-0"
+                      className="px-4 py-2 bg-accent hover:bg-accent-strong text-canvas font-bold text-xs rounded-control flex items-center space-x-1.5 transition-all shadow-md cursor-pointer shrink-0"
                     >
                       {copiedField === `react_export_${reactExportFormat}` ? (
                         <Check className="w-4 h-4 text-ink" />
@@ -2122,7 +2227,7 @@ ${displayedText}
                   </div>
 
                   <div className="relative">
-                    <pre className="p-5 bg-canvas text-ink rounded-b-2xl font-mono text-xs overflow-x-auto whitespace-pre-wrap max-h-[550px] border border-line leading-relaxed selection:bg-cyan-900">
+                    <pre className="p-5 bg-canvas text-ink rounded-b-2xl font-mono text-xs overflow-x-auto whitespace-pre-wrap max-h-[550px] border border-line leading-relaxed selection:bg-accent-soft">
                       {codeText}
                     </pre>
                   </div>
@@ -2131,9 +2236,9 @@ ${displayedText}
             })()}
 
             {/* Quick React Integration Instructions */}
-            <div className="bg-cyan-950/20 border border-cyan-800/30 rounded-panel p-5 text-xs text-ink-muted space-y-3">
+            <div className="bg-accent/20 border border-accent/30 rounded-panel p-5 text-xs text-ink-muted space-y-3">
               <div className="flex items-center space-x-2 font-bold text-ink text-sm">
-                <Sparkles className="w-4 h-4 text-cyan-600" />
+                <Sparkles className="w-4 h-4 text-accent-ink" />
                 <span>Como usar no seu Blog em React:</span>
               </div>
 

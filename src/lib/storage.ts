@@ -52,14 +52,46 @@ O texto não deve ensinar alguém a funcionar melhor dentro de uma realidade ado
   ],
   targetAudienceDescription:
     'Leitores em busca de reflexão existencial profunda, autoconhecimento genuíno e crítica aos clichês contemporâneos sobre saúde mental e relacionamentos.',
-  writerInstructions: `DIRETRIZES FUNDAMENTAIS DO REDATOR:
-1. Escrever em primeira pessoa com estilo ensaístico, autoral e refinado.
-2. NUNCA falar diretamente com o leitor usando a palavra "você". Use formulações impessoais ou coletivas ("há momentos em que", "podemos pensar", "talvez seja necessário perguntar", "é possível que").
-3. Começar o artigo a partir de uma tensão, contradição, cena cotidiana, frase comum ou incômodo conceitual.
-4. Desenvolver a ideia gradualmente relacionando a experiência individual, as relações e o contexto social/histórico.
-5. NÃO citar autores ou escolas teóricas diretamente. As referências (Gestalt, fenomenologia, Espinosa, psicanálise) devem estar assimiladas na escrita como modo de pensar.
-6. ABSOLUTAMENTE PROIBIDO criar listas de passos, red flags, manuais de produtividade, conselhos motivacionais ou frases feitas de autoajuda.
-7. Terminar mantendo alguma abertura (uma pergunta, tensão ou formulação provocativa), NUNCA com resumo, moral, lição ou lista de recomendações.`,
+  writerInstructions: `COMO ESTE TEXTO SE COMPORTA:
+
+A PRIMEIRA FRASE É UMA CENA, NÃO UM ANÚNCIO DE CENA.
+
+Regra dura: a primeira frase não pode começar com "Há", "Existe", "Quando", "No mundo", "Em tempos", nem ter substantivo abstrato como sujeito (fenômeno, questão, experiência, sociedade, contemporaneidade). Ela precisa de alguém ou de alguma coisa fazendo algo, num lugar, num momento.
+
+Veja a diferença:
+
+✗ "Há um fenômeno sutil que atravessa a experiência contemporânea: o instante em que o corpo busca a quietude mas a mente permanece vigilante."
+✓ "São quatro da tarde de um domingo. O corpo está na poltrona há quarenta minutos e ainda não descansou."
+
+✗ "A solidão constitui uma das questões mais complexas da existência humana."
+✓ "O elevador para no andar errado e ela agradece a interrupção. Alguém, enfim."
+
+✗ "Quando pensamos na relação entre trabalho e identidade, percebemos que há uma sobreposição."
+✓ "Perguntam o que ele faz e ele responde o nome de uma empresa."
+
+O conceito só entra depois, e só porque a cena o exigiu. Nunca ao contrário.
+
+Pensa em voz alta. A prosa acompanha alguém raciocinando de verdade: hesita, se corrige, volta atrás, encontra a formulação melhor na segunda tentativa. Frases longas quando o pensamento se estende, frases curtas quando ele para. A assimetria é o que faz soar humano.
+
+Situa. A experiência individual está sempre atravessada por relações, história e condições materiais. O texto mostra isso na forma de pensar o problema, não numa denúncia explícita.
+
+Confia no leitor. Não explica o que já ficou claro, não recapitula, não anuncia o que vai fazer antes de fazer. Uma imagem bem escolhida vale mais que o parágrafo que a explicaria.
+
+TERMINA EM PERGUNTA. Obrigatoriamente — o texto acaba com uma frase interrogativa, e ela é a última linha.
+
+Critério: a pergunta precisa ser impossível de fazer antes do texto. Se ela funcionaria como título, ou se caberia igualmente em qualquer outro ensaio sobre o assunto, está errada — é pergunta decorativa. A boa pergunta depende de algo que só este texto construiu.
+
+Ela é impessoal: pergunta-se ao problema, não ao leitor.
+
+✗ "Afinal, será que não é hora de repensarmos nossa relação com o tempo?"
+✗ "E se o descanso fosse, no fim das contas, um ato de coragem?"
+✓ "Mas quanto tempo alguém precisa ficar parado antes que a parada deixe de ser dívida e volte a ser apenas tempo?"
+
+Nunca um resumo, uma lição ou uma recomendação antes dela.
+
+As referências teóricas (Gestalt, fenomenologia, Espinosa, psicanálise) estão dissolvidas no modo de pensar — nunca nomeadas, nunca citadas.
+
+LIMITES INEGOCIÁVEIS: sem o pronome "você" dirigido ao leitor; sem listas de passos, sinais ou red flags; sem promessa de cura ou de método.`,
   reviewerInstructions: `POSTURA DO REVISOR SÊNIOR (RÍGIDO E ANTI-GENÉRICO):
 1. REESCRITA CRÍTICA CONTRA TEXTOS GENÉRICOS: Se o rascunho do Redator for superficial, genérico, usar tom de autoajuda ou parecer "gerado por IA", REESCREVA O TEXTO PROFUNDAMENTE para torná-lo um ensaio denso, autoral e filosoficamente refinado.
 2. ELIMINAÇÃO SUMÁRIA DO PRONOME "VOCÊ": Substitua toda ocorrência de "você" por "há momentos em que", "podemos pensar" ou construções impessoais/coletivas.
@@ -71,14 +103,55 @@ O texto não deve ensinar alguém a funcionar melhor dentro de uma realidade ado
 - Não oferecer soluções estritamente individuais para sofrimentos produzidos socialmente.
 - Tratar a clínica como fonte de reflexões gerais, sem expor histórias de pacientes.
 - Recusar o adestramento comportamental ou promessas de cura rápida.`,
+  /* Mantido para compatibilidade com artigos e filtros já existentes. */
   themeCategories: [
-    'Awareness & Fenomenologia da Experiência',
-    'Potência de Existir & Afetos (Espinosa)',
-    'Existência, Liberdade & Responsabilidade',
-    'Vínculos, Afeto & Alteridade',
-    'Sofrimento Social & Crítica à Cultura',
-    'Luto, Impermanência & Transições',
+    'Relação consigo',
+    'Relação com o outro',
+    'Relação com o mundo',
+    'Relação com o tempo',
+    'Relação com algo maior',
   ],
+
+  /* Eixos relacionais: cada um é um lugar da vida, não uma escola teórica.
+     A taxonomia anterior nomeava frameworks ("Potência de Existir (Espinosa)"),
+     o que levava o redator a demonstrar teoria em vez de escrever sobre gente —
+     e contradizia a própria regra de nunca nomear autores. */
+  thematicAxes: [
+    {
+      axis: 'Relação consigo',
+      topics: ['Autocobrança', 'Vergonha', 'Corpo', 'Autoimagem', 'Cansaço', 'Desejo'],
+    },
+    {
+      axis: 'Relação com o outro',
+      topics: ['Solidão', 'Ciúme', 'Dependência', 'Conflito', 'Cuidado', 'Abandono'],
+    },
+    {
+      axis: 'Relação com o mundo',
+      topics: ['Trabalho', 'Produtividade', 'Dinheiro', 'Pertencimento', 'Injustiça', 'Consumo'],
+    },
+    {
+      axis: 'Relação com o tempo',
+      topics: ['Luto', 'Envelhecer', 'Espera', 'Arrependimento', 'Urgência', 'Memória'],
+    },
+    {
+      axis: 'Relação com algo maior',
+      topics: ['Sentido', 'Fé', 'Morte', 'Natureza', 'Herança', 'Mistério'],
+    },
+  ],
+
+  intendedEffect: `O leitor deve terminar o texto mais lento do que começou.
+
+A sensação a produzir é a de ter sido acompanhado, não instruído — como quem sai de uma conversa em que alguém finalmente nomeou algo que estava sem nome. Reconhecimento antes de explicação; alívio de não estar sozinho naquilo, sem que ninguém tenha prometido resolver.
+
+O texto não deve provocar vontade de compartilhar uma frase de efeito. Deve provocar silêncio por alguns segundos depois da última linha.`,
+
+  calibrationReferences: `A régua é o ensaio literário, não o post de blog.
+
+O padrão de densidade e acabamento é o de textos publicados na Serrote, na piauí, no caderno de ideias de um jornal sério, ou na New Yorker em seus ensaios longos — prosa que um editor exigente aprovaria sem pedir corte.
+
+O parentesco de tom está em quem escreve sobre experiência humana sem jargão e sem consolo fácil: a clareza sem simplificação de Adam Phillips, o ritmo pensante de John Berger, a atenção ao cotidiano de Annie Ernaux.
+
+Um texto que caberia numa revista de autoajuda falhou, mesmo que esteja correto.`,
   humanizerInstructions: `DIRETRIZES DE HUMANIZAÇÃO E CADÊNCIA TEXTUAL (EXPURGO DE IA):
 1. Eliminar conectores artificiais de IA ("Além disso", "Portanto", "No entanto", "É importante destacar", "Vale ressaltar").
 2. Variar a extensão dos parágrafos, criando momentos de pausa curta, respiração e assimetria oral natural.

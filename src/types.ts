@@ -1,3 +1,12 @@
+/* Eixo relacional: um lugar da vida de onde falar, com os assuntos que cabem
+   nele. Substitui a lista de escolas teóricas — "Relação com o tempo → Luto"
+   dá ao redator uma situação humana; "Potência de Existir (Espinosa)" pede que
+   ele demonstre uma teoria, e o resultado sai falando de conceitos. */
+export interface ThematicAxis {
+  axis: string;
+  topics: string[];
+}
+
 export interface UserManifesto {
   authorName: string;
   professionalTitle: string;
@@ -12,6 +21,19 @@ export interface UserManifesto {
   themeCategories?: string[]; // "Eixos temáticos e categorias personalizadas do autor"
   humanizerInstructions?: string; // "Diretrizes específicas do Editor de Humanização & Cadência (Des-AIzador)"
   conceptualCuratorInstructions?: string; // "Diretrizes do Curador Conceitual & Filosófico (Guardião da Teoria)"
+
+  /* Eixos relacionais com seus assuntos. Alimentam o gerador de pautas e o
+     briefing do redator. */
+  thematicAxes?: ThematicAxis[];
+
+  /* Efeito pretendido no leitor, em linguagem sensorial. O prompt precisa de um
+     lugar para mirar, não só de uma lista do que evitar. */
+  intendedEffect?: string;
+
+  /* Referências de calibração: onde está a régua. Adjetivos como "denso" e
+     "autoral" não têm referente; um padrão nomeado tem. Isto calibra o prompt,
+     não autoriza citar autores no texto final. */
+  calibrationReferences?: string;
 }
 
 export interface AgentPrompts {
@@ -42,6 +64,26 @@ export interface DraftResult {
   generatedAt: string;
 }
 
+/* Parecer de um especialista. `approved: null` significa que a chamada falhou —
+   distinto de reprovado, e nunca tratado como aprovação. */
+export interface SpecialistVerdict {
+  notes: string;
+  approved: boolean | null;
+  severity: string;
+  issues: string[];
+  failed?: boolean;
+}
+
+/* Auditoria do texto final, feita depois da reescrita. É o único veredito que
+   olha para aquilo que efetivamente será publicado. */
+export interface AuditResult {
+  approved: boolean;
+  ethicsCheckPassed: boolean;
+  severity: string;
+  summary: string;
+  issues: string[];
+}
+
 export interface ReviewResult {
   revisedTitle: string;
   revisedSubtitle: string;
@@ -58,6 +100,14 @@ export interface ReviewResult {
   suggestedTags?: string[];
   keyTakeaways: string[];
   readingTimeMinutes: number;
+
+  /* Opcionais: artigos gerados antes da revisão do comitê não os possuem. */
+  specialists?: {
+    humanization: SpecialistVerdict;
+    conceptual: SpecialistVerdict;
+    clinical: SpecialistVerdict;
+  };
+  audit?: AuditResult;
 }
 
 export interface ImageResult {
