@@ -1283,68 +1283,6 @@ export const ArticleResultView: React.FC<ArticleResultViewProps> = ({
                 );
               })}
 
-            {/* SEÇÃO DE PERGUNTAS PARA REFLEXÃO PSICOTERAPÊUTICA / LEVAR À SESSÃO */}
-            <div className="mt-10 pt-8 border-t border-current/15 space-y-4">
-              {/* Bloco de destaque dentro do artigo: deriva da cor da superfície
-                  em vez de usar os tokens da interface, senão vira um cartão
-                  escuro sobre papel claro. */}
-              <div className="bg-current/[0.04] rounded-panel p-5 sm:p-7 space-y-4 border border-current/15">
-                <div className="flex items-center justify-between border-b border-current/15 pb-3">
-                  <div className="flex items-center space-x-2 font-serif font-bold text-base sm:text-lg">
-                    <Compass className="w-5 h-5 shrink-0" />
-                    <span>Perguntas para Reflexão Psicoterapêutica</span>
-                  </div>
-                  <button
-                    onClick={() => {
-                      const questionsText = `Perguntas para Reflexão sobre "${displayedTitle}":\n\n1. Como este tema se conecta com situações concretas do seu momento atual?\n2. O que você percebe em seu corpo ao refletir sobre as contradições expostas neste texto?\n3. Que sentimentos surgem ao acolher essa experiência sem pressa de solucioná-la?\n4. Que pergunta você gostaria de levar para a sua próxima sessão de terapia sobre este assunto?`;
-                      handleCopyText(questionsText, 'reflection_questions');
-                      if (addToast) {
-                        addToast('success', 'Perguntas copiadas!', 'Prontas para envio ao paciente ou anotação pessoal.');
-                      }
-                    }}
-                    className="px-3 py-1.5 bg-accent text-canvas font-bold text-xs rounded-control flex items-center space-x-1.5 transition-all shadow-xs cursor-pointer shrink-0"
-                  >
-                    {copiedField === 'reflection_questions' ? <Check className="w-3.5 h-3.5 text-ink" /> : <Copy className="w-3.5 h-3.5 text-ink" />}
-                    <span>{copiedField === 'reflection_questions' ? 'Copiado!' : 'Copiar Perguntas'}</span>
-                  </button>
-                </div>
-
-                <p className="text-xs text-ink-muted leading-relaxed font-sans">
-                  Instigações não-prescritivas elaboradas para desacelerar o automatismo e permitir que o leitor ou paciente aprofunde a sua experiência:
-                </p>
-
-                <div className="space-y-2.5 pt-1">
-                  <div className="flex items-start space-x-3 bg-surface-raised/80 p-3.5 rounded-control border border-line/80">
-                    <span className="w-6 h-6 rounded-full bg-accent text-accent-ink text-xs font-bold flex items-center justify-center shrink-0">1</span>
-                    <p className="text-xs sm:text-sm text-ink font-serif leading-snug">
-                      Como este tema se conecta com situações e relacionamentos concretos do seu momento atual?
-                    </p>
-                  </div>
-
-                  <div className="flex items-start space-x-3 bg-surface-raised/80 p-3.5 rounded-control border border-line/80">
-                    <span className="w-6 h-6 rounded-full bg-accent text-accent-ink text-xs font-bold flex items-center justify-center shrink-0">2</span>
-                    <p className="text-xs sm:text-sm text-ink font-serif leading-snug">
-                      O que você percebe em seu corpo e em suas emoções ao refletir sobre as tensões expostas neste ensaio?
-                    </p>
-                  </div>
-
-                  <div className="flex items-start space-x-3 bg-surface-raised/80 p-3.5 rounded-control border border-line/80">
-                    <span className="w-6 h-6 rounded-full bg-accent text-accent-ink text-xs font-bold flex items-center justify-center shrink-0">3</span>
-                    <p className="text-xs sm:text-sm text-ink font-serif leading-snug">
-                      O que mudaria em sua rotina se você pudesse acolher esse sentimento sem tentar eliminá-lo de forma apressada?
-                    </p>
-                  </div>
-
-                  <div className="flex items-start space-x-3 bg-surface-raised/80 p-3.5 rounded-control border border-line/80">
-                    <span className="w-6 h-6 rounded-full bg-accent text-accent-ink text-xs font-bold flex items-center justify-center shrink-0">4</span>
-                    <p className="text-xs sm:text-sm text-ink font-serif leading-snug">
-                      Que pergunta singular você gostaria de levar para a sua próxima sessão de psicoterapia a partir deste texto?
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
-
           </div>
 
           {/* Ethics Lembrete Footer */}

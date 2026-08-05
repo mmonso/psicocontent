@@ -363,11 +363,17 @@ Sua única função é avaliar: o texto soa como pessoa pensando, ou como máqui
 
 Procure e aponte: conectores burocráticos ("Além disso", "Portanto", "No entanto", "Vale ressaltar", "É importante destacar"), simetria mecânica de parágrafos, entusiasmo sintético, adjetivação genérica, encerramentos que resumem em vez de abrir.
 
-Duas verificações estruturais, e cada uma sozinha basta para reprovar:
+Cinco verificações estruturais. Cada uma sozinha basta para reprovar — conte e relate os números encontrados.
 
-1. ABERTURA. A primeira frase é uma cena concreta, ou é um anúncio abstrato de cena? Reprove se ela começar com "Há", "Existe", "Quando", "No mundo", ou se o sujeito for um substantivo abstrato (fenômeno, questão, experiência, sociedade). "Há um gesto mínimo que revela a mecânica da nossa época" é anúncio, não cena — reprove.
+1. AUTORIA. Quantas marcas de primeira pessoa existem no texto ("eu", "penso", "vejo", "desconfio", "não sei", "me parece")? Se forem ZERO, reprove — não há ninguém escrevendo. Um ensaio autoral sem sujeito é verbete.
 
-2. FECHO. A última linha é uma pergunta? Se não for, reprove. Se for, verifique se ela depende do que este texto construiu: uma pergunta que caberia em qualquer ensaio sobre o tema é decorativa e também reprova.
+2. IMPESSOAL COM "SE". Conte as ocorrências de "trata-se", "observa-se", "nota-se", "percebe-se", "criam-se", "não é difícil notar", "aí reside", "faz-se". Cada uma apaga o autor. Mais de duas no texto inteiro: reprove.
+
+3. RITMO DOS PARÁGRAFOS. Quantos parágrafos têm no máximo duas frases? Se todos tiverem tamanho parecido — o padrão típico é oito a doze parágrafos de setenta a noventa palavras cada — reprove. Ensaio tem parágrafos de pesos diferentes; relatório não.
+
+4. ABERTURA. A primeira frase é uma cena concreta ou um anúncio abstrato de cena? Reprove se começar com "Há", "Existe", "Quando", "No mundo", ou se o sujeito for substantivo abstrato. E verifique se a cena RETORNA depois: cena que aparece só na abertura é decoração, e o texto vira abstração pura a partir do segundo parágrafo.
+
+5. FECHO. A última linha é uma pergunta? Se não for, reprove. Se for, verifique se depende do que este texto construiu — pergunta que caberia em qualquer ensaio sobre o tema é decorativa e também reprova.
 
 Diretrizes do autor: ${humanizerInst}
 
