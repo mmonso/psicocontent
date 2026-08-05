@@ -85,6 +85,16 @@ não são três perspectivas — não podem discordar entre si.
   │  Cada um devolve: notes, approved, severity,     │
   │  issues[]                                        │
   └──────────────────────┬───────────────────────────┘
+                         │
+   O especialista de humanização não julga por            
+   impressão: precisa CONTAR e relatar cinco itens,       
+   e cada um sozinho reprova.                             
+     1  marcas de primeira pessoa (zero = reprova)        
+     2  impessoal com "se" (mais de duas = reprova)       
+     3  ritmo de parágrafo (todos iguais = reprova)       
+     4  a cena de abertura retorna depois?                
+     5  a última linha é pergunta, e depende do texto?    
+                         │
                          ▼
   ┌─ Fase 3 ─────────────────────────────────────────┐
   │  Reescrita                         1 chamada     │
@@ -155,6 +165,7 @@ coração do sistema: define quem escreve. Editável pela interface em
 
 | Campo | Papel |
 |---|---|
+| `toneOfVoice` | **Quem fala.** Primeira pessoa como regra principal |
 | `worldviewDescription` | Como o autor pensa. Vai para todos os agentes. |
 | `writerInstructions` | Como o texto se comporta — com exemplos contrastantes |
 | `intendedEffect` | O efeito pretendido no leitor, em linguagem sensorial |
@@ -164,10 +175,11 @@ coração do sistema: define quem escreve. Editável pela interface em
 | `prohibitedTerms` | O que denuncia um texto fraco |
 | `humanizerInstructions` / `conceptualCuratorInstructions` | Diretrizes por especialista |
 
-### Três decisões de prompt que mediram diferença
+### Quatro decisões de prompt que mediram diferença
 
-Foram testadas contra a mesma pauta e o mesmo modelo. Os ganhos são reais mas
-a amostra é pequena — nove gerações, sem repetição por condição.
+Testadas contra as mesmas pautas e o mesmo modelo. Os ganhos são reais, mas a
+amostra é pequena — uma geração por tema, sem repetição por condição, e só a
+etapa de rascunho.
 
 **Prosa livre em vez de schema JSON.** O ensaio era um campo entre quatro (nove
 na reescrita), escrito como string escapada enquanto a mesma passada produzia
@@ -183,6 +195,42 @@ burocráticos foram de 5 para 0.
 obedecido ao pé da letra enquanto o hábito sintático sobrevivia — todo texto
 começava com "Há um fenômeno…". Mostrar pares ✗/✓ resolveu: aberturas em cena
 foram de 0/1 para 3/3, fechos em pergunta idem.
+
+**Uma proibição alta engole uma exigência baixa.** Este é o achado mais
+transferível dos quatro, e o mais fácil de reintroduzir por engano.
+
+O `toneOfVoice` começava com "Escrever em primeira pessoa" e, na frase
+seguinte, proibia "você" oferecendo `"há momentos em que"` e `"podemos pensar"`
+como alternativas. Medido em três textos, marcas de primeira pessoa: **zero**.
+Não escassas — ausentes.
+
+A proibição era alta e específica; a exigência de autoria era oração de
+passagem; e as alternativas sugeridas são elas próprias impessoais. O modelo
+obedeceu a parte alta e derivou para `trata-se de`, `observa-se`, `nota-se` —
+doze construções em três textos. Cada uma apaga quem fala, e é isso que faz a
+prosa soar como máquina.
+
+O campo agora abre pelo autor e trata "você" como limite de fechamento, com
+pares ✗/✓ mostrando a construção impessoal ao lado da equivalente em primeira
+pessoa.
+
+Junto veio o ritmo de parágrafo: eram dez a doze parágrafos de 78–88 palavras
+cada, todos uma pequena dissertação completa. Forma de relatório. As
+instruções agora exigem ao menos dois parágrafos de uma ou duas frases,
+permitem parágrafos que deslocam sem concluir, e exigem que a cena de abertura
+retorne — cena que aparece uma vez e nunca mais é decoração.
+
+| | Antes | Depois |
+|---|---|---|
+| Marcas de 1ª pessoa | 0 | 14 |
+| Impessoal com "se" | 12 | 0 |
+| Parágrafos curtos (≤2 frases) | 3 | 11 |
+| Variação de parágrafo (CV) | 0,24 | 0,53 |
+
+> **Se for editar o manifesto:** cuidado ao acrescentar proibições. Elas
+> competem por atenção com o que você pede de fato, e a proibição costuma
+> vencer. Prefira descrever o comportamento desejado e deixar os limites no
+> fim, curtos.
 
 ---
 
@@ -285,15 +333,31 @@ superfície** e a hierarquia vem de opacidade e `border-current`. Fixar
 
 ## Estado atual e limitações conhecidas
 
-**O pipeline completo nunca foi medido de ponta a ponta.** As métricas de
-qualidade acima cobrem só a etapa de rascunho. O comitê e a auditoria rodaram
-em teste isolado, mas não numa produção completa.
+**O pipeline completo nunca foi medido de ponta a ponta.** Todas as métricas de
+qualidade acima vêm da etapa de rascunho isolada. O comitê e a auditoria
+rodaram uma vez em teste próprio, mas nunca numa produção completa.
+
+**Os cinco critérios contáveis do especialista de humanização nunca rodaram.**
+Foram escritos e nunca executados. Não se sabe se o modelo consegue contar
+marcas de primeira pessoa e construções impessoais de forma confiável — é
+plausível que erre, e nesse caso reprovaria texto bom ou aprovaria texto ruim.
+Vale conferir os números que ele relata contra o texto antes de confiar neles.
 
 **O caminho de reprovação nunca foi exercitado.** A lógica que barra um artigo
 reprovado está escrita e tipada, mas nunca se viu a auditoria barrar de fato —
 nos testes o texto reescrito sempre passou.
 
-**`ArticleResultView` tem 2269 linhas** e concentra leitura, edição, correção
+**As métricas desta documentação são heurísticas escritas à mão**, não
+ferramentas estabelecidas. Uma delas chegou a reprovar aberturas corretas
+porque o regex proibia frases começando com artigo definido — que é
+exatamente a forma de uma boa abertura concreta. Números aqui merecem
+conferência contra o texto.
+
+**A nota de ética no rodapé do artigo é fixa no código** e trata o leitor por
+"você", contrariando o manifesto. Ficou por ter função protetiva, mas pode ser
+reescrita sem o pronome.
+
+**`ArticleResultView` tem ~2180 linhas** e concentra leitura, edição, correção
 por seleção, exportação em quatro formatos, carrossel e reels. É o principal
 candidato a divisão.
 

@@ -2036,19 +2036,6 @@ ${displayedText
   .join('\n\n')}
       </div>
 
-      <footer className="mt-12 pt-8 border-t border-line">
-        <div className="bg-surface text-ink rounded-panel p-6 space-y-4">
-          <h4 className="font-serif font-bold text-lg text-accent-ink">
-            Perguntas para Reflexão Psicoterapêutica
-          </h4>
-          <ol className="list-decimal pl-5 space-y-2 text-sm text-ink">
-            <li>Como este tema se conecta com situações do seu momento atual?</li>
-            <li>O que você percebe em seu corpo ao refletir sobre este ensaio?</li>
-            <li>O que mudaria em sua rotina se acolhesse esses sentimentos sem pressa?</li>
-            <li>Que pergunta você gostaria de levar para a sua próxima sessão?</li>
-          </ol>
-        </div>
-      </footer>
     </article>
   );
 };
@@ -2076,12 +2063,6 @@ export default ArticlePostComponent;`;
                     seoMetaDescription: post.review?.metaDescription || '',
                     socialCaption: post.review?.socialCaption || '',
                     bodyMarkdown: displayedText,
-                    reflectionQuestions: [
-                      'Como este tema se conecta com situações concretas do seu momento atual?',
-                      'O que você percebe em seu corpo ao refletir sobre as contradições expostas neste texto?',
-                      'Que sentimentos surgem ao acolher essa experiência sem pressa de solucioná-la?',
-                      'Que pergunta você gostaria de levar para a sua próxima sessão de terapia sobre este assunto?',
-                    ],
                   },
                   null,
                   2
@@ -2104,13 +2085,6 @@ metaDescription: ${JSON.stringify(post.review?.metaDescription || '')}
 
 ${displayedSubtitle ? `*${displayedSubtitle}*\n` : ''}
 ${displayedText}
-
-## Perguntas para Reflexão Psicoterapêutica
-
-1. Como este tema se conecta com situações concretas do seu momento atual?
-2. O que você percebe em seu corpo ao refletir sobre as contradições expostas neste texto?
-3. Que sentimentos surgem ao acolher essa experiência sem pressa de solucioná-la?
-4. Que pergunta você gostaria de levar para a sua próxima sessão de terapia sobre este assunto?
 `;
               } else if (reactExportFormat === 'html') {
                 formatTitle = 'HTML Semântico Sanitizado';
